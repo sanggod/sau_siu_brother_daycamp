@@ -93,16 +93,22 @@ function check(label, ok, detail) {
     await phone.evaluate(() =>
       document.documentElement.scrollWidth <= window.innerWidth));
 
-  /* ── a draw on the phone must reach the projector ── */
-  await phone.locator('#draw').click();
-  await phone.waitForTimeout(1100);            // 800ms roll, then settle
+  /* ── a draw on the phone must reach the projector ──
+     愁哥哥反悔 flips nothing, and on an empty board it has nothing to take back
+     either, so one press can legitimately leave the board untouched. Press
+     until something lands rather than betting the check on a 3% roll. */
+  let pressed = 0;
+  do {
+    await phone.locator('#draw').click();
+    await phone.waitForTimeout(1100);          // 800ms roll, then settle
+    await screen.waitForFunction(() => document.querySelectorAll('.cell.on').length > 0,
+      null, { timeout: 2500 }).catch(() => {});
+  } while (await screen.locator('.cell.on').count() === 0 && ++pressed < 6);
 
   check('play: draw number shown',
     /^\d+$/.test((await phone.locator('#flash-n').textContent()).trim()),
     (await phone.locator('#flash-n').textContent()).trim());
 
-  await screen.waitForFunction(() => document.querySelectorAll('.cell.on').length > 0,
-    null, { timeout: 5000 }).catch(() => {});
   const flipped = await screen.locator('.cell.on').count();
   check('screen: the phone\'s draw flipped the board', flipped > 0, `${flipped} cell(s) on`);
   check('screen: score matches flipped cells',

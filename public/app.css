@@ -233,18 +233,21 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .cell.on .face.front { opacity: 0; }
 .cell.on .face.back { opacity: 1; }
 
+/* The number only earns the second it takes to find the square the draw
+   named. It is not what anyone watches, so it stays out of the artwork's way
+   and lets the countdown — which does drive the game — read first. */
 .cell .num {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: 3px;
+  left: 3px;
   font-family: var(--num);
-  font-size: 19px;
+  font-size: 12px;
   line-height: 1;
-  padding: 3px 7px 4px;
-  border-radius: 5px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, .94);
-  box-shadow: 0 1px 3px rgba(64, 48, 27, .25);
+  padding: 2px 5px 3px;
+  border-radius: 4px;
+  color: var(--sand);
+  background: rgba(255, 255, 255, .8);
+  box-shadow: 0 1px 2px rgba(64, 48, 27, .14);
   pointer-events: none;
   z-index: 2;
 }
@@ -282,12 +285,14 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .board.endgame .cell.on .time { opacity: 0; }
 .board.endgame .cell.on .time.urgent { opacity: 1; }
 .board.endgame .cell.on .num { opacity: .28; }
+/* The ring is what marks a square as still to do; the badge only has to say
+   which one, so it stays small here too — just purple enough to belong to it. */
 .board.endgame .cell:not(.on) .num {
-  font-size: 25px;
-  padding: 4px 9px 5px;
+  font-size: 15px;
+  padding: 3px 6px 4px;
   background: var(--purple);
   color: #fff;
-  box-shadow: 0 2px 7px rgba(64, 48, 27, .32);
+  box-shadow: 0 2px 5px rgba(64, 48, 27, .28);
 }
 .board.endgame .cell:not(.on)::after {
   content: '';
