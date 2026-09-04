@@ -228,6 +228,32 @@ function check(label, ok, detail) {
     seqAfter === seqBefore && await screen.locator('.cell.on').count() === 40,
     `seq ${seqBefore} -> ${seqAfter}`);
 
+  /* ── getting out of a won round ──
+     The overlay is inset:0 and covers the status bar, so 重新開始 down there is
+     unreachable once it shows. Without its own button the operator was stranded
+     on the win screen with only the R key. */
+  check('screen: the status bar is buried by the win overlay',
+    await screen.evaluate(() => {
+      const r = document.getElementById('reset');
+      const b = r.getBoundingClientRect();
+      const hit = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+      return !!hit && hit !== r && !r.contains(hit);
+    }));
+  check('screen: the win screen carries its own restart',
+    await screen.locator('#win-again').isVisible());
+
+  await screen.locator('#win-again').click();
+  await screen.waitForTimeout(600);
+  check('screen: 再嚟過 clears the board',
+    await screen.locator('.cell.on').count() === 0);
+  check('screen: win overlay gone after 再嚟過',
+    await screen.locator('#win').isHidden());
+
+  await phone.waitForTimeout(400);
+  check('play: draw button live again after 再嚟過',
+    !(await phone.locator('#draw').isDisabled()),
+    (await phone.locator('#draw').textContent()).trim());
+
   /* ── 入口 ── */
   const land = await ctx.newPage();
   await land.setViewportSize({ width: 390, height: 844 });

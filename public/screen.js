@@ -26,7 +26,8 @@
     dot: document.getElementById('dot'),
     mode: document.getElementById('mode'),
     reset: document.getElementById('reset'),
-    win: document.getElementById('win')
+    win: document.getElementById('win'),
+    winAgain: document.getElementById('win-again')
   };
 
   var state = null;      // latest synced game state
@@ -182,6 +183,13 @@
   }
 
   /* ── 重新開始: two presses, or R twice ── */
+  function doReset() {
+    disarm();
+    flash = null;
+    clearTimeout(flashTimer);
+    renderFlash();
+    if (window.FlipSync) window.FlipSync.reset();
+  }
   function reset() {
     if (!confirm) {
       confirm = true;
@@ -190,11 +198,7 @@
       confirmTimer = setTimeout(disarm, CONFIRM_MS);
       return;
     }
-    disarm();
-    flash = null;
-    clearTimeout(flashTimer);
-    renderFlash();
-    if (window.FlipSync) window.FlipSync.reset();
+    doReset();
   }
   function disarm() {
     clearTimeout(confirmTimer);
@@ -208,6 +212,9 @@
   fit();
   window.addEventListener('resize', fit);
   el.reset.addEventListener('click', reset);
+  /* No double-press here: the round is already over, so there is no live game
+     to protect the way there is mid-round. */
+  el.winAgain.addEventListener('click', doReset);
   window.addEventListener('keydown', function (e) {
     if (e.key === 'r' || e.key === 'R') reset();
   });

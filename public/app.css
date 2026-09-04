@@ -500,9 +500,24 @@ button { font-family: inherit; cursor: pointer; border: none; }
   font-weight: 700;
   line-height: 1.5;
 }
-.win .sub small {
-  font-size: 27px;
-  color: rgba(64, 48, 27, .62);
+/* The overlay covers the whole stage, 重新開始 in the status bar included, so
+   the only way out of a won round used to be the R key. */
+.win-again {
+  margin-top: 52px;
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 46px;
+  letter-spacing: .14em;
+  padding: 22px 66px;
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--yellow);
+  box-shadow: 0 10px 0 rgba(64, 48, 27, .32);
+  transition: transform .1s, box-shadow .1s;
+}
+.win-again:active {
+  transform: translateY(4px);
+  box-shadow: 0 6px 0 rgba(64, 48, 27, .32);
 }
 
 
