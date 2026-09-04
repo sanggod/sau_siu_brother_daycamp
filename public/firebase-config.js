@@ -10,11 +10,11 @@
 // all tabs/windows on ONE machine stay in sync, no network needed.
 
 export default {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",          // e.g. https://your-project-default-rtdb.asia-southeast1.firebasedatabase.app
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyD9LMtQDpVrPty6076pPrLRPF5Z1oKNPHE",
+  authDomain: "sau-siu-brother-daycamp.firebaseapp.com",
+  databaseURL: "https://sau-siu-brother-daycamp-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sau-siu-brother-daycamp",
+  storageBucket: "sau-siu-brother-daycamp.firebasestorage.app",
+  messagingSenderId: "985405815836",
+  appId: "1:985405815836:web:5e379e222e3bd1e0c7b3d9"
 };
