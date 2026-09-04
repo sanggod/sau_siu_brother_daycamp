@@ -2,7 +2,13 @@
  *
  * Mirrors Firebase Hosting's `cleanUrls`: /play serves play.html, and a
  * request for /play.html redirects to /play — so the local checks exercise
- * the same URLs the camp will. */
+ * the same URLs the camp will.
+ *
+ * firebase-config.js is stubbed out with an empty databaseURL so the checks
+ * always run in LOCAL sync mode. Without this they inherit whatever project
+ * the repo is currently pointed at and play a full game into the live camp
+ * database — which is exactly what happened before the stub existed. Pass
+ * { localSync: false } if you ever genuinely want to test against Firebase. */
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -18,10 +24,23 @@ const TYPES = {
   '.webp': 'image/webp'
 };
 
-function serve(root, { cleanUrls = true, port = 0, host = '127.0.0.1' } = {}) {
+const LOCAL_CONFIG =
+  '/* stubbed by tools/static-server.js — forces LOCAL sync mode */\n' +
+  'export default { apiKey: "", authDomain: "", databaseURL: "", projectId: "",\n' +
+  '  storageBucket: "", messagingSenderId: "", appId: "" };\n';
+
+function serve(root, { cleanUrls = true, port = 0, host = '127.0.0.1', localSync = true } = {}) {
   const server = http.createServer((req, res) => {
     const url = new URL(req.url, 'http://localhost');
     let rel = decodeURIComponent(url.pathname);
+
+    if (localSync && rel === '/firebase-config.js') {
+      res.writeHead(200, {
+        'Content-Type': TYPES['.js'],
+        'Cache-Control': 'no-store'
+      });
+      return res.end(LOCAL_CONFIG);
+    }
 
     if (cleanUrls && rel.endsWith('.html')) {
       res.writeHead(301, { Location: rel.slice(0, -5) });

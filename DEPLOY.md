@@ -83,11 +83,16 @@ window.FLIP_SETTINGS = {
 ## 玩法（同原設計一樣）
 
 - 40 格，5 欄 × 8 行。正面愁哥哥（灰），反面笑弟弟（暖黃 + 光暈）。
-- 組員完成任務 → 操作員撳手機「抽一格」→ 隨機抽 1–40 → 大螢幕即刻翻。
+- 組員完成任務 → 操作員撳手機「抽一次」→ 大螢幕即刻翻。
 - 每格笑 2:00–3:00（隨機）之後自動翻返愁哥哥。
-- 抽到已經翻開嘅格 → 計時重新計。
-- 40 格同一刻全部係笑弟弟 → 大螢幕出「全村都笑咗！」
-- **重置只在大螢幕**：右下角「重置全局」撳兩次，或者撳 `R` 兩次。手機淨係可以抽格。
+- **抽格只會抽仲係愁哥哥嗰啲**。以前係 1–40 隨機抽，夾到 30 幾格之後，
+  差唔多每次都抽返已經翻開嘅格，得個計時重新計，操作員連撳幾次都好似冇反應。
+  而家只要仲有愁哥哥，每次抽都一定開到新格。
+- 翻夠 30 格，大螢幕自動轉「**收官模式**」：已經翻開嘅格收起倒數同淡化號碼，
+  淨低嘅愁哥哥用紫色框圈住，右邊出「仲差 N 格就贏」。
+- 40 格同一刻全部係笑弟弟 → 大螢幕出「全村都笑咗！」，手機嘅抽格掣即刻鎖住，
+  要大螢幕撳「重新開始」先可以再玩。
+- **重置只在大螢幕**：右下角「重新開始」撳兩次，或者撳 `R` 兩次。手機淨係可以抽格。
 
 ### 魔法
 
@@ -95,12 +100,15 @@ window.FLIP_SETTINGS = {
 |---|---|---|
 | 翻一格 | 60% | 正常翻一格 |
 | 傳染笑 | 8% | 上下左右四格一齊翻 |
-| 大笑三聲 | 8% | 另外三格隨機一齊翻 |
-| 笑到停唔到 | 7% | 該格計時加倍（4–6 分鐘） |
-| 全村一齊笑 | 3% | 整整一行五格翻開 |
-| 愁雲密佈 | 6% | 翻該格，但收返一格已翻開嘅 |
+| 大笑三聲 | 8% | 另外三格一齊翻 |
+| 笑到停唔到 | 7% | 嗰格計時加倍（4–6 分鐘） |
+| 全村一齊笑 | 3% | 成行五格一齊翻開 |
+| 愁雲密佈 | 6% | 翻嗰格，但收返一格已經翻開嘅 |
 | 笑得唔夠久 | 5% | 兩格計時剩返一半 |
 | 愁哥哥反悔 | 3% | 唔翻，仲要收返一格 |
+
+魔法效果打橫出喺大螢幕左邊嗰塊大牌上面，用效果嘅顏色（綠＝好、粉紅＝衰、黃＝普通）
+鋪滿成塊卡，撳完之後留 6 秒。
 
 ## 收營之後
 
@@ -125,7 +133,32 @@ eight phones on camp wifi. `public/` is the same design rebuilt as plain
 HTML/CSS/JS — no framework, no build step, no runtime compilation.
 
 Everything visual is transcribed from the prototype's inline styles; the
-palette, metrics and copy are unchanged.
+palette and metrics are unchanged.
+
+### Changes after the first camp-day test
+
+The copy is no longer the prototype's. It had drifted into 書面語／台式中文
+(「這格的計時加倍」、「40 格全部變成笑弟弟，同一刻，就贏」), which reads wrong to a
+Hong Kong hall; it is now plain Cantonese throughout.
+
+Three behaviour changes came out of the same test:
+
+- **The draw picks from closed boxes only** (`applyDraw` in `sync.js`). It used
+  to pick uniformly from 1–40, so once ~30 boxes were open most presses landed
+  on an already-open box and merely restarted its timer. The operator saw the
+  button do nothing several presses running. `verify-engine.js` now asserts
+  that no draw lands on an open box while any closed one remains.
+- **Endgame focus mode** past 30 open (`ENDGAME_AT` in `screen.js`, `.board.endgame`
+  in `app.css`). A nearly-full board was 40 number badges and 40 countdowns on a
+  wall of yellow, and the few 愁哥哥 left — the only thing anyone still had to act
+  on — disappeared into it. Settled cells lose their countdown and fade their
+  badge; whatever is still grey gets a purple ring.
+- **The win locks the phone.** All 40 open used to leave the draw button live,
+  so operators kept drawing into a finished round. It now disables and points at
+  the projector's 重新開始.
+
+The 魔法 card also moved from the right rail to the left column and got much
+bigger — the hall should read *what* happened, not just which square lit up.
 
 ### The board artwork is pre-baked
 
@@ -185,12 +218,19 @@ npm run verify   # engine + end-to-end + pixel parity
 ```
 
 - `verify:engine` — 4000 draws through the real `sync.js`: storage shape, the
-  40-box ceiling, the win condition, and that all 8 magic effects fire at
-  their designed weights.
+  40-box ceiling, the win condition, that a draw never lands on an already-open
+  box while a closed one is left, and that all 8 magic effects fire at their
+  designed weights.
 - `verify:app` — loads all three pages against a server that mimics Firebase's
   clean URLs, draws on the phone, and asserts the projector flips; checks the
-  reset double-press, the timer sheet, and that no reset control leaked onto
-  the phone.
+  reset double-press, the timer sheet, that no reset control leaked onto the
+  phone, that the board switches to endgame focus past 30, and that a win
+  locks the phone's draw button.
+
+  That server also **stubs `firebase-config.js` with an empty `databaseURL`**, so
+  the checks always run in local sync mode. Without the stub they inherit
+  whatever project the repo is pointed at and play a full game into the live
+  camp database.
 - `verify:parity` — the pixel diff described above.
 
 ## Re-generating assets

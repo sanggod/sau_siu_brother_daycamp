@@ -127,7 +127,8 @@ function check(label, ok, detail) {
 
   /* ── reset is projector-only ── */
   check('play: no reset control on the phone',
-    await phone.locator('text=重置全局').count() === 0);
+    await phone.locator('#reset').count() === 0 &&
+    await phone.locator('text=重新開始').count() === 0);
   await screen.locator('#reset').click();
   check('screen: reset arms before it fires',
     (await screen.locator('#reset').textContent()).trim() === '再按一次確認' &&
@@ -139,6 +140,68 @@ function check(label, ok, detail) {
   check('screen: round advanced',
     /第 2 局/.test(await screen.locator('#mode').textContent()),
     (await screen.locator('#mode').textContent()).trim());
+
+  /* ── endgame: past 30 the board switches to "what is left" ──
+     Magic off so every draw opens exactly one box and the counts are exact. */
+  await phone.evaluate(() => window.FlipSync.configure({ magic: false }));
+  await phone.evaluate(() => { for (let i = 0; i < 32; i++) window.FlipSync.draw(); });
+  await screen.waitForFunction(
+    () => document.querySelectorAll('.cell.on').length >= 30, null, { timeout: 8000 }
+  ).catch(() => {});
+
+  const many = await screen.locator('.cell.on').count();
+  check('screen: 32 draws opened 32 boxes', many === 32, `${many} on`);
+  check('screen: endgame focus mode past 30',
+    await screen.locator('.board.endgame').count() === 1);
+  check('screen: 仲差 N 格 shown', await screen.locator('#togo').isVisible(),
+    (await screen.locator('#togo').textContent()).trim());
+  check('screen: settled timers hidden, urgent ones exempt',
+    await screen.evaluate(() => {
+      const on = [...document.querySelectorAll('.board.endgame .cell.on')];
+      return on.length > 0 && on.every(c => {
+        const t = c.querySelector('.time');
+        return t.classList.contains('urgent') ||
+               getComputedStyle(t).opacity === '0';
+      });
+    }));
+  check('screen: remaining 愁哥哥 are ringed',
+    await screen.evaluate(() => {
+      const off = document.querySelector('.board.endgame .cell:not(.on)');
+      return !!off && getComputedStyle(off, '::after').content !== 'none';
+    }));
+
+  /* ── the win locks the phone out ── */
+  await phone.evaluate(() => { for (let i = 0; i < 8; i++) window.FlipSync.draw(); });
+  await screen.waitForFunction(
+    () => document.querySelectorAll('.cell.on').length === 40, null, { timeout: 8000 }
+  ).catch(() => {});
+  check('screen: win overlay shows at 40', await screen.locator('#win').isVisible());
+  check('screen: endgame ring cleared once won',
+    await screen.locator('.board.endgame').count() === 0);
+
+  await phone.waitForTimeout(300);
+  check('play: draw button disabled after the win',
+    await phone.locator('#draw').isDisabled(),
+    (await phone.locator('#draw').textContent()).trim());
+  // onState fires its callback synchronously before it returns the
+  // unsubscribe, so the handle cannot be used from inside the first call.
+  const readSeq = () => phone.evaluate(() => new Promise(res => {
+    let done = false, off = null;
+    off = window.FlipSync.onState(s => {
+      if (done) return;
+      done = true;
+      res(s.seq || 0);
+      if (off) off();
+    });
+    if (done && off) off();
+  }));
+  const seqBefore = await readSeq();
+  await phone.locator('#draw').click({ force: true }).catch(() => {});
+  await phone.waitForTimeout(400);
+  const seqAfter = await readSeq();
+  check('play: a forced press after the win draws nothing',
+    seqAfter === seqBefore && await screen.locator('.cell.on').count() === 40,
+    `seq ${seqBefore} -> ${seqAfter}`);
 
   /* ── 入口 ── */
   const land = await ctx.newPage();

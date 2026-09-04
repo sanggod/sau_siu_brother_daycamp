@@ -42,12 +42,22 @@ function check(label, ok, detail) {
     let maxBoxes = 0, wonSeen = false, wonWithoutFull = false;
     let nullBox = false, outOfRange = false, longLog = false;
     let drawsWithN = 0;
+    // The whole point of the closed-pool pick: while any box is still 愁哥哥,
+    // a draw must land on one of those, never on a box that is already open.
+    let wastedDraws = 0, drawsWithRoom = 0;
 
     for (let i = 0; i < DRAWS; i++) {
+      // Look 50ms ahead so a box expiring between this snapshot and the
+      // draw's own prune is not mistaken for a wasted pick.
+      const before = st ? Object.keys(S.live(st, Date.now() + 50)).map(Number) : [];
       S.draw();
       if (!st) return { fatal: 'no state after draw' };
 
       const last = st.last;
+      if (before.length < 40 && last) {
+        drawsWithRoom++;
+        if (before.indexOf(last.n) !== -1) wastedDraws++;
+      }
       if (last) {
         seen[last.eff] = (seen[last.eff] || 0) + 1;
         if (last.n >= 1 && last.n <= 40) drawsWithN++;
@@ -75,7 +85,7 @@ function check(label, ok, detail) {
     }
 
     return {
-      seen, maxBoxes, wonSeen, wonWithoutFull, longLog,
+      seen, maxBoxes, wonSeen, wonWithoutFull, longLog, wastedDraws, drawsWithRoom,
       badKeys: [...badKeys], nullBox, outOfRange, drawsWithN,
       effects: S.EFFECTS.map(e => e.id)
     };
@@ -95,6 +105,9 @@ function check(label, ok, detail) {
   check('log stayed capped at 10', !r.longLog);
   check('win only ever set with all 40 live', !r.wonWithoutFull);
   check('win condition was reached at least once', r.wonSeen);
+  check('a draw never lands on an already-open box while any is closed',
+    r.wastedDraws === 0,
+    `${r.wastedDraws} wasted of ${r.drawsWithRoom} draws with room`);
 
   const missing = r.effects.filter(id => !r.seen[id]);
   check('all 8 magic effects fired', missing.length === 0,

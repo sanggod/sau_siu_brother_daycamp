@@ -12,14 +12,14 @@
   var CFG = { min: 120, max: 180, magic: true };
 
   var EFFECTS = [
-    { id: 'none',   w: 60, name: '翻一格',     desc: '笑弟弟出現，計時開始。',     tone: 'plain' },
-    { id: 'spread', w: 8,  name: '傳染笑',     desc: '隔籬格都忍唔住一齊笑。',     tone: 'good' },
-    { id: 'triple', w: 8,  name: '大笑三聲',   desc: '另外三格隨機一齊翻開。',     tone: 'good' },
-    { id: 'long',   w: 7,  name: '笑到停唔到', desc: '這格的計時加倍。',           tone: 'good' },
-    { id: 'row',    w: 3,  name: '全村一齊笑', desc: '整整一行五格翻開。',         tone: 'good' },
-    { id: 'gloom',  w: 6,  name: '愁雲密佈',   desc: '一格已翻開的翻返愁哥哥。',   tone: 'bad' },
-    { id: 'half',   w: 5,  name: '笑得唔夠久', desc: '兩格的計時剩返一半。',       tone: 'bad' },
-    { id: 'regret', w: 3,  name: '愁哥哥反悔', desc: '唔翻，仲要收返一格。',       tone: 'bad' }
+    { id: 'none',   w: 60, name: '翻一格',     desc: '笑弟弟出嚟喇，開始計時。',   tone: 'plain' },
+    { id: 'spread', w: 8,  name: '傳染笑',     desc: '隔籬四格都忍唔住一齊笑。',   tone: 'good' },
+    { id: 'triple', w: 8,  name: '大笑三聲',   desc: '仲有另外三格一齊翻開。',     tone: 'good' },
+    { id: 'long',   w: 7,  name: '笑到停唔到', desc: '呢格可以笑耐多一倍。',       tone: 'good' },
+    { id: 'row',    w: 3,  name: '全村一齊笑', desc: '成行五格一齊翻開。',         tone: 'good' },
+    { id: 'gloom',  w: 6,  name: '愁雲密佈',   desc: '收返一格，變返愁哥哥。',     tone: 'bad' },
+    { id: 'half',   w: 5,  name: '笑得唔夠久', desc: '兩格嘅時間剩返一半。',       tone: 'bad' },
+    { id: 'regret', w: 3,  name: '愁哥哥反悔', desc: '唔翻住，仲要收返一格。',     tone: 'bad' }
   ];
 
   function key(n) { return 'b' + n; }
@@ -81,10 +81,17 @@
   }
 
   function applyDraw(cur) {
-    var now = Date.now(), st = norm(cur);
+    var now = Date.now(), st = norm(cur), i;
     prune(st, now);
-    var n = 1 + Math.floor(Math.random() * N);
-    var eff = pickEffect(), extra = [], i, pool;
+    /* Draw from the boxes still showing 愁哥哥. A uniform 1-40 pick meant that
+       past ~30 flipped, most draws landed on a box that was already open and
+       only restarted its timer — operators saw the button do nothing several
+       presses in a row. Every draw now opens a box while any is left. */
+    var closed = [];
+    for (i = 1; i <= N; i++) if (!st.boxes[key(i)]) closed.push(i);
+    var n = closed.length ? closed[Math.floor(Math.random() * closed.length)]
+                          : 1 + Math.floor(Math.random() * N);
+    var eff = pickEffect(), extra = [], pool;
 
     function flip(m, d) { st.boxes[key(m)] = { at: now, dur: d || baseDur() }; }
     function takeOne(skip) {

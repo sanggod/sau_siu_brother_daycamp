@@ -9,12 +9,15 @@
   var CFG = F.settings();
   var N = 40, COLS = 5, ROWS = 8;
   var FLASH_MS = 6000, CONFIRM_MS = 3500, URGENT_MS = 20000;
+  /* Where the board stops being "filling up" and starts being "what's left". */
+  var ENDGAME_AT = 30;
 
   var el = {
     stage: document.getElementById('stage'),
     board: document.getElementById('board'),
     count: document.getElementById('count'),
     bar: document.getElementById('bar'),
+    togo: document.getElementById('togo'),
     flash: document.getElementById('flash'),
     flashN: document.getElementById('flash-n'),
     flashName: document.getElementById('flash-name'),
@@ -97,6 +100,16 @@
       shown.count = count;
       el.count.textContent = String(count);
       el.bar.style.width = (count / N * 100) + '%';
+
+      var endgame = count >= ENDGAME_AT && count < N;
+      el.board.classList.toggle('endgame', endgame);
+      el.togo.hidden = !endgame;
+      if (endgame) {
+        var strong = document.createElement('b');
+        strong.textContent = String(N - count);
+        el.togo.replaceChildren(document.createTextNode('仲差 '), strong,
+                                document.createTextNode(' 格就贏'));
+      }
     }
 
     var won = count >= N;
@@ -115,7 +128,7 @@
     }
   }
 
-  /* ── 剛剛抽到 ── */
+  /* ── 啱啱抽到 ── */
   function renderFlash() {
     var last = flash || (state && state.last) || null;
     var active = !!flash;
@@ -131,9 +144,16 @@
       el.flash.style.background = '';
       el.flash.style.color = '';
     }
+    // No number until something has actually been drawn — a placeholder glyph
+    // at 122px Archivo Black just reads as a stray bar across the hall.
+    el.flashN.hidden = !last;
     el.flashN.textContent = last ? String(last.n) : '';
-    el.flashName.textContent = last ? last.name : '等緊第一次抽格';
-    el.flashDesc.textContent = last ? last.desc : '';
+    el.flashName.textContent = last ? last.name : '準備開始？';
+    el.flashDesc.textContent = last ? last.desc : '㩒手機嘅抽格機，抽你哋第一格。';
+
+    // Restart the pop each time a draw lands, not just on the first one.
+    el.flash.classList.remove('bump');
+    if (active) { void el.flash.offsetWidth; el.flash.classList.add('bump'); }
   }
 
   /* ── 紀錄 ── */
@@ -161,7 +181,7 @@
     el.log.replaceChildren(frag);
   }
 
-  /* ── 重置全局: two presses, or R twice ── */
+  /* ── 重新開始: two presses, or R twice ── */
   function reset() {
     if (!confirm) {
       confirm = true;
@@ -180,7 +200,7 @@
     clearTimeout(confirmTimer);
     confirm = false;
     el.reset.classList.remove('armed');
-    el.reset.textContent = '重置全局';
+    el.reset.textContent = '重新開始';
   }
 
   /* ── boot ── */

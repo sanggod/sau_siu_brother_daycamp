@@ -2,7 +2,8 @@
 (function () {
   var F = window.Flip;
   var CFG = F.settings();
-  var ROLL_MS = 800, ROLL_STEP = 55, URGENT_MS = 20000;
+  var N = 40, ROLL_MS = 800, ROLL_STEP = 55, URGENT_MS = 20000;
+  var DRAW_LABEL = '抽 一 次';
 
   var el = {
     dot: document.getElementById('dot'),
@@ -26,11 +27,12 @@
   var rolling = false, rollTimer = 0, rollStop = 0;
   var sheetOpen = false;
   var rows = {};   // box number -> {root, bar, at, text, urgent}
-  var shown = { count: -1, modeClass: null, flashKey: null };
+  var shown = { count: -1, modeClass: null, flashKey: null, won: null };
+  var won = false;
 
   /* ── the number spins for 800ms before the real draw lands ── */
   function draw() {
-    if (rolling || !window.FlipSync) return;
+    if (rolling || won || !window.FlipSync) return;
     rolling = true;
     el.draw.classList.add('rolling');
     el.draw.textContent = '抽…';
@@ -41,7 +43,8 @@
       clearInterval(rollTimer);
       rolling = false;
       el.draw.classList.remove('rolling');
-      el.draw.textContent = '抽 一 格';
+      el.draw.textContent = won ? '等大螢幕重新開始' : DRAW_LABEL;
+      el.draw.disabled = won;
       shown.flashKey = null;
       renderFlash();
     }, ROLL_MS);
@@ -125,6 +128,16 @@
       shown.count = count;
       el.countN.textContent = String(count);
       el.countB.textContent = String(count);
+    }
+
+    won = count >= N;
+    if (shown.won !== won) {
+      shown.won = won;
+      el.draw.classList.toggle('done', won);
+      if (!rolling) {
+        el.draw.disabled = won;
+        el.draw.textContent = won ? '等大螢幕重新開始' : DRAW_LABEL;
+      }
     }
 
     var cls = F.modeClass();

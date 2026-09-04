@@ -30,17 +30,24 @@
     <div class="columns">
 
       <div class="intro">
-        <div>
+        <div class="intro-head">
           <div class="eyebrow">東東村 · 日營大挑戰</div>
           <div class="rule"></div>
           <div class="name sad">愁哥哥</div>
           <div class="name-join">同</div>
           <div class="name glad">笑弟弟</div>
-          <p class="blurb">因為哥哥天天愁眉苦臉，<br>弟弟天天眉開眼笑。</p>
         </div>
+
+        <div class="flash" id="flash">
+          <div class="label">啱啱抽到</div>
+          <div class="n" id="flash-n" hidden></div>
+          <div class="name" id="flash-name">準備開始？</div>
+          <div class="desc" id="flash-desc">㩒手機嘅抽格機，抽你哋第一格。</div>
+        </div>
+
         <div class="rules">
-          <b>40 格全部變成笑弟弟，同一刻，就贏。</b>
-          <span>每格笑 2:00–3:00 之後會翻返愁哥哥。做任務要快。</span>
+          <b>40 格一齊變晒笑弟弟，就贏！</b>
+          <span>每格笑完 2:00–3:00 就會變返愁哥哥，要快手。</span>
         </div>
       </div>
 
@@ -56,17 +63,7 @@
             <div class="of">/ 40</div>
           </div>
           <div class="bar"><i id="bar"></i></div>
-        </div>
-
-        <div class="flash" id="flash">
-          <div class="label">剛剛抽到</div>
-          <div class="row">
-            <div class="n" id="flash-n"></div>
-            <div style="flex:1">
-              <div class="name" id="flash-name">等緊第一次抽格</div>
-              <div class="desc" id="flash-desc"></div>
-            </div>
-          </div>
+          <div class="togo" id="togo" hidden></div>
         </div>
 
         <div class="log">
@@ -78,7 +75,7 @@
           <div class="dot" id="dot"></div>
           <span id="mode">連線中… · 第 1 局</span>
           <a class="swap" href="play">切去手機版</a>
-          <button class="reset" id="reset">重置全局</button>
+          <button class="reset" id="reset">重新開始</button>
         </div>
       </div>
     </div>
@@ -86,7 +83,7 @@
     <div class="win" id="win" hidden>
       <div>
         <div class="headline">全村都笑咗！</div>
-        <div class="sub">40 格同一刻變成笑弟弟</div>
+        <div class="sub">40 格一齊變晒笑弟弟<br><small>撳「重新開始」再嚟過</small></div>
       </div>
     </div>
   </div>

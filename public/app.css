@@ -111,9 +111,11 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .intro {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 22px;
   padding: 12px 0 8px;
+  min-height: 0;
 }
+.intro-head { flex: none; }
 .eyebrow {
   font-size: 20px;
   letter-spacing: .34em;
@@ -125,12 +127,12 @@ button { font-family: inherit; cursor: pointer; border: none; }
   width: 120px;
   background: var(--yellow);
   border-radius: 99px;
-  margin: 18px 0 40px;
+  margin: 14px 0 22px;
 }
 .name {
   font-family: var(--serif);
   font-weight: 900;
-  font-size: 104px;
+  font-size: 72px;
   line-height: .98;
   letter-spacing: .02em;
 }
@@ -138,18 +140,10 @@ button { font-family: inherit; cursor: pointer; border: none; }
 .name.glad { color: var(--orange); }
 .name-join {
   font-family: var(--serif);
-  font-size: 38px;
+  font-size: 28px;
   line-height: 1;
-  margin: 10px 0 6px;
+  margin: 6px 0 4px;
   color: var(--sand-pale);
-}
-.blurb {
-  font-size: 27px;
-  line-height: 1.75;
-  color: var(--sand);
-  margin: 38px 0 0;
-  max-width: 20em;
-  text-wrap: pretty;
 }
 .rules {
   background: #fff;
@@ -252,6 +246,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   background: rgba(255, 255, 255, .94);
   box-shadow: 0 1px 3px rgba(64, 48, 27, .25);
   pointer-events: none;
+  z-index: 2;
 }
 .cell .time {
   position: absolute;
@@ -268,6 +263,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   opacity: 0;
   transition: opacity .3s;
   pointer-events: none;
+  z-index: 2;
 }
 .cell.on .time { opacity: 1; }
 .no-timers .cell .time { opacity: 0; }
@@ -275,6 +271,33 @@ button { font-family: inherit; cursor: pointer; border: none; }
   background: var(--pink);
   color: #fff;
   animation: breathe 1s infinite;
+}
+
+/* Past ~30 flipped, the board is a wall of yellow carrying 40 number badges
+   and 40 countdowns, and the handful of 愁哥哥 left — the only thing the hall
+   still has to act on — vanishes into it. Endgame mode strips the settled
+   cells back to plain artwork and rings whatever is still grey, so the last
+   few targets read from the back of the room. Countdowns stay on the cells
+   that are about to expire, which is the only timing that still matters. */
+.board.endgame .cell.on .time { opacity: 0; }
+.board.endgame .cell.on .time.urgent { opacity: 1; }
+.board.endgame .cell.on .num { opacity: .28; }
+.board.endgame .cell:not(.on) .num {
+  font-size: 25px;
+  padding: 4px 9px 5px;
+  background: var(--purple);
+  color: #fff;
+  box-shadow: 0 2px 7px rgba(64, 48, 27, .32);
+}
+.board.endgame .cell:not(.on)::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 7px;
+  box-shadow: 0 0 0 4px var(--purple), 0 0 24px 5px rgba(126, 100, 180, .5);
+  animation: breathe 1.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Right column — score, last draw, log. */
@@ -323,45 +346,64 @@ button { font-family: inherit; cursor: pointer; border: none; }
   border-radius: 99px;
   transition: width .5s;
 }
+.togo {
+  margin-top: 14px;
+  font-size: 27px;
+  font-weight: 900;
+  color: var(--purple);
+}
+.togo b {
+  font-family: var(--num);
+  font-size: 34px;
+}
 
+/* 魔法 — the loudest thing on the projector after the board itself. It sits in
+   the left column so the hall reads WHAT happened, not just which square lit
+   up; the tone colour floods the whole card for the 6s the draw is live. */
 .flash {
-  padding: 26px 28px;
-  border-radius: 14px;
-  transition: background .4s, color .4s;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 34px;
+  border-radius: 20px;
+  transition: background .4s, color .4s, box-shadow .4s;
   background: #fff;
   color: var(--sand-pale);
   box-shadow: 0 0 0 2px var(--track);
+  overflow: hidden;
 }
-.flash.active { box-shadow: 0 14px 32px rgba(64, 48, 27, .22); }
+.flash.active { box-shadow: 0 18px 44px rgba(64, 48, 27, .26); }
 .flash .label {
-  font-size: 18px;
-  letter-spacing: .3em;
+  font-size: 21px;
+  letter-spacing: .34em;
   font-weight: 700;
-  opacity: .75;
-}
-.flash .row {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 8px;
+  opacity: .8;
 }
 .flash .n {
   font-family: var(--num);
-  font-size: 104px;
-  line-height: .9;
+  font-size: 122px;
+  line-height: .88;
+  letter-spacing: -.02em;
 }
 .flash .name {
   font-family: var(--serif);
   font-weight: 900;
-  font-size: 42px;
-  line-height: 1.1;
+  font-size: 68px;
+  line-height: 1.08;
+  letter-spacing: .01em;
+  text-wrap: balance;
 }
 .flash .desc {
-  font-size: 22px;
+  font-size: 29px;
   line-height: 1.5;
-  margin-top: 8px;
-  opacity: .9;
+  opacity: .92;
+  text-wrap: pretty;
 }
+/* Re-triggered from screen.js on every new draw. */
+.flash.bump { animation: pop .45s both; }
 
 .log {
   flex: 1;
@@ -451,6 +493,11 @@ button { font-family: inherit; cursor: pointer; border: none; }
   font-size: 40px;
   margin-top: 24px;
   font-weight: 700;
+  line-height: 1.5;
+}
+.win .sub small {
+  font-size: 27px;
+  color: rgba(64, 48, 27, .62);
 }
 
 
@@ -586,6 +633,16 @@ button { font-family: inherit; cursor: pointer; border: none; }
   color: var(--sand-light);
   box-shadow: none;
 }
+/* Round over — only the projector can start the next one. */
+.btn-draw:disabled {
+  background: #EDE0C0;
+  color: var(--sand-light);
+  box-shadow: none;
+  font-size: clamp(19px, 3.4vh, 27px);
+  letter-spacing: .04em;
+  cursor: default;
+}
+.btn-draw:disabled:active { transform: none; }
 .btn-sheet {
   height: clamp(46px, 9vh, 60px);
   flex-shrink: 0;
