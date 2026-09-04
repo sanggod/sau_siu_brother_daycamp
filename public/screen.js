@@ -37,7 +37,7 @@
   var confirmTimer = 0;
   var cells = [];        // {root, time, on, text, urgent}
   var lastLogId = null;
-  var shown = { count: -1, mode: '', modeClass: null, won: null, flashKey: null };
+  var shown = { count: -1, mode: '', modeClass: null, won: null, flashKey: null, timers: null };
 
   /* ── the 1920x1080 stage scales to whatever the projector gives us ── */
   function fit() {
@@ -66,7 +66,6 @@
       cells.push({ root: cell, time: cell.lastChild, on: false, text: '', urgent: false });
     }
     el.board.appendChild(frag);
-    if (!CFG.showTimers) document.body.classList.add('no-timers');
   }
 
   /* ── per-frame patching ── */
@@ -111,6 +110,14 @@
         el.togo.replaceChildren(document.createTextNode('仲差 '), strong,
                                 document.createTextNode(' 格'));
       }
+    }
+
+    // Countdowns are a shared setting now, so /admin can pull them off the
+    // board mid-round without anyone touching the projector.
+    var timers = state.cfg ? state.cfg.timers !== false : true;
+    if (shown.timers !== timers) {
+      shown.timers = timers;
+      document.body.classList.toggle('no-timers', !timers);
     }
 
     var won = count >= N;
@@ -220,7 +227,10 @@
   });
 
   F.whenReady(function () {
-    window.FlipSync.configure({ min: CFG.minSeconds, max: CFG.maxSeconds, magic: CFG.magic });
+    window.FlipSync.configure({
+      min: CFG.minSeconds, max: CFG.maxSeconds, magic: CFG.magic,
+      negative: CFG.negative, miss: CFG.miss, timers: CFG.showTimers
+    });
     window.FlipSync.onState(function (st) {
       var prev = state;
       var isNew = st && st.last && (!prev || !prev.last || prev.last.id !== st.last.id);

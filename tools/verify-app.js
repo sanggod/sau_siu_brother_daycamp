@@ -149,7 +149,11 @@ function check(label, ok, detail) {
 
   /* ── endgame: past 30 the board switches to "what is left" ──
      Magic off so every draw opens exactly one box and the counts are exact. */
-  await phone.evaluate(() => window.FlipSync.configure({ magic: false }));
+  // configure() only seeds the defaults a FRESH round starts from; a round
+  // already carrying a cfg follows the shared copy, which is the whole point
+  // of /admin. Changing a live game goes through setConfig.
+  await phone.evaluate(() => window.FlipSync.setConfig({ magic: false }));
+  await phone.waitForTimeout(300);
   // Draws can now miss, so press until the board is where we want it rather
   // than assuming one press is one square.
   const fillTo = (target) => phone.evaluate((t) => {

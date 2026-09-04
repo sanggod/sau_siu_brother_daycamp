@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>愁哥哥同笑弟弟 · 設定台</title>
+<meta name="description" content="東東村日營翻格遊戲 — 營期中途改設定">
+<meta name="theme-color" content="#FFF6E0">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="admin">
+
+  <div class="admin-head">
+    <div class="dot" id="dot"></div>
+    <div class="title">設定台</div>
+    <div class="live"><b id="count">0</b>/40 · 第 <b id="round">1</b> 局</div>
+  </div>
+
+  <div class="admin-body">
+
+    <section class="card">
+      <h2>每格笑幾耐</h2>
+      <div class="range-row">
+        <div class="range">
+          <span>最短</span>
+          <button class="step" data-step="min:-15" aria-label="最短減 15 秒">−</button>
+          <b id="min-v">2:00</b>
+          <button class="step" data-step="min:15" aria-label="最短加 15 秒">＋</button>
+        </div>
+        <div class="range">
+          <span>最長</span>
+          <button class="step" data-step="max:-15" aria-label="最長減 15 秒">−</button>
+          <b id="max-v">3:00</b>
+          <button class="step" data-step="max:15" aria-label="最長加 15 秒">＋</button>
+        </div>
+      </div>
+      <div class="presets" id="dur-presets">
+        <button data-dur="90,120">趕時間<i>1:30–2:00</i></button>
+        <button data-dur="120,180">正常<i>2:00–3:00</i></button>
+        <button data-dur="180,300">耐啲<i>3:00–5:00</i></button>
+        <button data-dur="300,480">好耐<i>5:00–8:00</i></button>
+      </div>
+      <p class="hint">只影響之後抽嘅格。已經翻開嗰啲照住原本嘅時間行完。</p>
+    </section>
+
+    <section class="card">
+      <h2>效果</h2>
+      <label class="toggle">
+        <input type="checkbox" id="t-magic">
+        <span>魔法效果<i>閂咗就每次淨係老實翻一格</i></span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="t-negative">
+        <span>負面魔法<i>愁雲密佈 · 笑得唔夠久 · 愁哥哥反悔</i></span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="t-miss">
+        <span>食白果<i>抽到已經笑緊嗰格，今次冇格翻</i></span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="t-timers">
+        <span>大螢幕倒數<i>格仔角落嗰個時間</i></span>
+      </label>
+      <div class="presets" id="mood-presets">
+        <button data-mood="kind">順風<i>負面同食白果都閂</i></button>
+        <button data-mood="normal">正常<i>全部開返</i></button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>指定下一格</h2>
+      <p class="hint">撳一格，下次手機抽格就一定抽到佢。淨係管一次。</p>
+      <div class="pickboard" id="pick"></div>
+      <div class="pick-eff">
+        <span>效果</span>
+        <select id="force-eff">
+          <option value="">隨機（照舊）</option>
+        </select>
+      </div>
+      <div class="forced" id="forced" hidden>
+        <span id="forced-text"></span>
+        <button id="forced-clear">取消</button>
+      </div>
+    </section>
+
+    <section class="card danger">
+      <h2>重新開始</h2>
+      <p class="hint">清晒 40 格，局數 +1。設定唔會跟住走。</p>
+      <button class="wide-reset" id="reset">重新開始</button>
+    </section>
+
+  </div>
+
+  <div class="admin-foot">
+    <span id="mode">連線中…</span>
+    <a href="screen">大螢幕</a>
+    <a href="play">抽格機</a>
+  </div>
+
+</div>
+
+<script src="settings.js"></script>
+<script src="game.js"></script>
+<script src="sync.js"></script>
+<script src="admin.js"></script>
+<script src="register-sw.js"></script>
+</body>
+</html>

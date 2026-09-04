@@ -9,7 +9,11 @@
   var N = 40, COLS = 5, ROWS = 8, PATH = 'flipgame/v1';
   var FB_VERSION = '10.12.5';
 
-  var CFG = { min: 120, max: 180, magic: true };
+  /* Seeded from settings.js on boot. It is only ever the DEFAULT for a fresh
+     game: once a round carries a cfg the shared copy wins, because the draw
+     runs on whichever phone pressed the button and eight phones disagreeing
+     about the timer length would be chaos. /admin edits the shared copy. */
+  var CFG = { min: 120, max: 180, magic: true, negative: true, miss: true, timers: true };
 
   var EFFECTS = [
     { id: 'none',   w: 60, name: '翻一格',     desc: '笑弟弟出嚟喇，開始計時。',   tone: 'plain' },
@@ -36,17 +40,52 @@
   function key(n) { return 'b' + n; }
   function num(k) { return +String(k).slice(1); }
 
-  function pickEffect() {
-    if (!CFG.magic) return EFFECTS[0];
-    var total = 0, i;
-    for (i = 0; i < EFFECTS.length; i++) total += EFFECTS[i].w;
+  function effectById(id) {
+    if (id === 'miss') return MISS;
+    for (var i = 0; i < EFFECTS.length; i++) if (EFFECTS[i].id === id) return EFFECTS[i];
+    return null;
+  }
+  function pickEffect(cfg) {
+    if (!cfg.magic) return EFFECTS[0];
+    var pool = [], i;
+    for (i = 0; i < EFFECTS.length; i++) {
+      if (cfg.negative || EFFECTS[i].tone !== 'bad') pool.push(EFFECTS[i]);
+    }
+    var total = 0;
+    for (i = 0; i < pool.length; i++) total += pool[i].w;
     var r = Math.random() * total;
-    for (i = 0; i < EFFECTS.length; i++) { r -= EFFECTS[i].w; if (r <= 0) return EFFECTS[i]; }
+    for (i = 0; i < pool.length; i++) { r -= pool[i].w; if (r <= 0) return pool[i]; }
     return EFFECTS[0];
   }
-  function baseDur() {
-    var lo = CFG.min * 1000, hi = Math.max(CFG.max * 1000, lo + 1000);
+  function baseDur(cfg) {
+    var lo = cfg.min * 1000, hi = Math.max(cfg.max * 1000, lo + 1000);
     return Math.round(lo + Math.random() * (hi - lo));
+  }
+
+  function clampNum(v, lo, hi, fallback) {
+    v = Math.round(+v);
+    if (!isFinite(v)) return fallback;
+    return Math.max(lo, Math.min(hi, v));
+  }
+  function normCfg(c) {
+    c = c || {};
+    var out = {
+      min: clampNum(c.min, 5, 3600, CFG.min),
+      max: clampNum(c.max, 5, 3600, CFG.max),
+      magic:    c.magic    === undefined ? CFG.magic    : !!c.magic,
+      negative: c.negative === undefined ? CFG.negative : !!c.negative,
+      miss:     c.miss     === undefined ? CFG.miss     : !!c.miss,
+      timers:   c.timers   === undefined ? CFG.timers   : !!c.timers
+    };
+    if (out.max < out.min) out.max = out.min;
+    return out;
+  }
+  function normForced(f) {
+    if (!f) return null;
+    var n = Math.round(+f.n);
+    if (!(n >= 1 && n <= N)) return null;
+    var eff = f.eff && effectById(f.eff) ? f.eff : '';
+    return { n: n, eff: eff };
   }
   function shuffle(a) {
     for (var i = a.length - 1; i > 0; i--) {
@@ -64,7 +103,12 @@
     return out;
   }
 
-  function empty() { return { round: 1, boxes: {}, draws: [], seq: 0, last: null, wonAt: 0 }; }
+  function empty(cfg) {
+    return {
+      round: 1, boxes: {}, draws: [], seq: 0, last: null, wonAt: 0,
+      cfg: normCfg(cfg), forced: null
+    };
+  }
   function norm(s) {
     s = s || {};
     var boxes = {}, src = s.boxes || {};
@@ -77,7 +121,8 @@
     }
     return {
       round: s.round || 1, boxes: boxes, draws: s.draws || [],
-      seq: s.seq || 0, last: s.last || null, wonAt: s.wonAt || 0
+      seq: s.seq || 0, last: s.last || null, wonAt: s.wonAt || 0,
+      cfg: normCfg(s.cfg), forced: normForced(s.forced)
     };
   }
   function prune(st, now) {
@@ -93,27 +138,43 @@
 
   function applyDraw(cur) {
     var now = Date.now(), st = norm(cur), i;
+    var cfg = st.cfg;
     prune(st, now);
-    /* A uniform 1-40 pick meant that past ~30 flipped, most draws landed on a
-       box that was already open and only restarted its timer — operators saw
-       the button do nothing several presses in a row. The wheel is now the
-       closed boxes plus a handful of open ones as decoys. */
+
+    /* /admin can nail the next draw to a square (and optionally an effect) for
+       when the hall needs a particular thing to happen. One draw only — it is
+       consumed here whether or not it was usable. */
+    var forced = st.forced;
+    st.forced = null;
+
     var closed = [], open = [];
     for (i = 1; i <= N; i++) (st.boxes[key(i)] ? open : closed).push(i);
 
-    var decoys = (closed.length && open.length)
-      ? Math.min(open.length, Math.max(1, Math.round(closed.length * DECOY_RATE)))
-      : 0;
-    var wheel = closed.concat(shuffle(open.slice()).slice(0, decoys));
-    var n = wheel.length ? wheel[Math.floor(Math.random() * wheel.length)]
-                         : 1 + Math.floor(Math.random() * N);
+    var n, missed;
+    if (forced) {
+      n = forced.n;
+      missed = false;             // a forced square opens, decoys do not apply
+    } else {
+      /* A uniform 1-40 pick meant that past ~30 flipped, most draws landed on a
+         box that was already open and only restarted its timer — operators saw
+         the button do nothing several presses in a row. The wheel is now the
+         closed boxes plus a handful of open ones as decoys. */
+      var decoys = (cfg.miss && closed.length && open.length)
+        ? Math.min(open.length, Math.max(1, Math.round(closed.length * DECOY_RATE)))
+        : 0;
+      var wheel = closed.concat(shuffle(open.slice()).slice(0, decoys));
+      n = wheel.length ? wheel[Math.floor(Math.random() * wheel.length)]
+                       : 1 + Math.floor(Math.random() * N);
+      // Landed on a decoy: the square is already laughing, so nothing changes.
+      missed = !!st.boxes[key(n)];
+    }
 
-    // Landed on a decoy: the square is already laughing, so nothing changes.
-    var missed = !!st.boxes[key(n)];
-    var eff = missed ? MISS : pickEffect();
+    var eff = (forced && forced.eff) ? effectById(forced.eff) : null;
+    if (!eff) eff = missed ? MISS : pickEffect(cfg);
+    if (eff.id === 'miss') missed = true;
     var extra = [], pool;
 
-    function flip(m, d) { st.boxes[key(m)] = { at: now, dur: d || baseDur() }; }
+    function flip(m, d) { st.boxes[key(m)] = { at: now, dur: d || baseDur(cfg) }; }
     function takeOne(skip) {
       var ks = liveNums(st).filter(function (x) { return x !== skip; });
       if (!ks.length) return 0;
@@ -134,7 +195,7 @@
       for (i = 1; i <= N; i++) if (i !== n && !st.boxes[key(i)]) pool.push(i);
       shuffle(pool).slice(0, 3).forEach(function (m) { flip(m); extra.push(m); });
     }
-    else if (eff.id === 'long') flip(n, Math.round(baseDur() * 2));
+    else if (eff.id === 'long') flip(n, Math.round(baseDur(cfg) * 2));
     else if (eff.id === 'row') {
       var row = Math.floor((n - 1) / COLS);
       for (i = 0; i < COLS; i++) {
@@ -192,7 +253,15 @@
     impl = {
       mode: 'local',
       draw: function () { var s = applyDraw(read()); write(s); set(s); },
-      reset: function () { var s = empty(); s.round = (norm(read()).round || 1) + 1; write(s); set(s); }
+      reset: function () {
+        // Settings survive a reset: the operator changed them mid-camp for a
+        // reason, and a new round should not quietly undo that.
+        var prev = norm(read());
+        var s = empty(prev.cfg);
+        s.round = (prev.round || 1) + 1;
+        write(s); set(s);
+      },
+      patch: function (fn) { var s = norm(read()); fn(s); write(s); set(s); }
     };
     set(read() || empty());
   }
@@ -235,10 +304,14 @@
       draw: function () { ref.transaction(function (cur) { return applyDraw(cur); }); },
       reset: function () {
         ref.transaction(function (cur) {
-          var s = empty();
-          s.round = ((cur && cur.round) || 1) + 1;
+          var prev = norm(cur);
+          var s = empty(prev.cfg);      // settings survive a reset
+          s.round = (prev.round || 1) + 1;
           return s;
         });
+      },
+      patch: function (fn) {
+        ref.transaction(function (cur) { var s = norm(cur); fn(s); return s; });
       }
     };
   }
@@ -256,12 +329,32 @@
   window.FlipSync = {
     N: N, COLS: COLS, ROWS: ROWS, EFFECTS: EFFECTS, MISS: MISS,
     DECOY_RATE: DECOY_RATE, ready: ready,
+    /** Seed the defaults a fresh game starts from (settings.js / URL params).
+        Does not touch a round that already carries a cfg. */
     configure: function (o) {
       if (!o) return;
       if (o.min) CFG.min = o.min;
       if (o.max) CFG.max = o.max;
       if (o.magic !== undefined) CFG.magic = !!o.magic;
+      if (o.negative !== undefined) CFG.negative = !!o.negative;
+      if (o.miss !== undefined) CFG.miss = !!o.miss;
+      if (o.timers !== undefined) CFG.timers = !!o.timers;
     },
+    /** Change the live settings for every device. /admin uses this. */
+    setConfig: function (patch) {
+      if (!impl || !patch) return;
+      impl.patch(function (s) {
+        var c = s.cfg, k;
+        for (k in patch) if (patch[k] !== undefined) c[k] = patch[k];
+        s.cfg = normCfg(c);
+      });
+    },
+    /** Nail the next draw to a square, optionally to an effect too. */
+    forceNext: function (n, eff) {
+      if (!impl) return;
+      impl.patch(function (s) { s.forced = normForced({ n: n, eff: eff }); });
+    },
+    cfgDefaults: function () { return normCfg(null); },
     onState: function (f) {
       listeners.push(f);
       f(state);

@@ -167,7 +167,10 @@
   el.closeSheet.addEventListener('click', function () { toggleSheet(false); });
 
   F.whenReady(function () {
-    window.FlipSync.configure({ min: CFG.minSeconds, max: CFG.maxSeconds, magic: CFG.magic });
+    window.FlipSync.configure({
+      min: CFG.minSeconds, max: CFG.maxSeconds, magic: CFG.magic,
+      negative: CFG.negative, miss: CFG.miss, timers: CFG.showTimers
+    });
     window.FlipSync.onState(function (st) {
       state = st;
       renderFlash();

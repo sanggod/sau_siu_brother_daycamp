@@ -7,9 +7,10 @@
     "serve": "node tools/dev-server.js",
     "assets": "python3 tools/bake-assets.py",
     "qr": "python3 tools/make-qr.py",
-    "verify": "node tools/verify-engine.js && node tools/verify-app.js && node tools/verify-parity.js",
+    "verify": "node tools/verify-engine.js && node tools/verify-app.js && node tools/verify-admin.js && node tools/verify-parity.js",
     "verify:engine": "node tools/verify-engine.js",
     "verify:app": "node tools/verify-app.js",
+    "verify:admin": "node tools/verify-admin.js",
     "verify:parity": "node tools/verify-parity.js",
     "deploy": "firebase deploy"
   },

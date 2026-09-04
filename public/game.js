@@ -1,6 +1,9 @@
 /* Shared helpers for both views. */
 window.Flip = (function () {
-  var DEFAULTS = { minSeconds: 120, maxSeconds: 180, magic: true, showTimers: true };
+  var DEFAULTS = {
+    minSeconds: 120, maxSeconds: 180,
+    magic: true, negative: true, miss: true, showTimers: true
+  };
 
   /** settings.js provides the camp's defaults; ?min=&max=&magic=&timers=
       override them per device, which is what the prototype's Tweaks panel did. */
@@ -12,6 +15,8 @@ window.Flip = (function () {
       if (q.has('min')) s.minSeconds = +q.get('min') || s.minSeconds;
       if (q.has('max')) s.maxSeconds = +q.get('max') || s.maxSeconds;
       if (q.has('magic')) s.magic = q.get('magic') !== '0';
+      if (q.has('negative')) s.negative = q.get('negative') !== '0';
+      if (q.has('miss')) s.miss = q.get('miss') !== '0';
       if (q.has('timers')) s.showTimers = q.get('timers') !== '0';
     }
     return s;

@@ -462,6 +462,7 @@ button { font-family: inherit; cursor: pointer; border: none; }
   text-decoration: underline;
   padding: 0;
 }
+.status .swap-tight { margin-left: 14px; }
 .status .reset {
   background: transparent;
   color: var(--pink);
@@ -878,3 +879,294 @@ body.landing .rainbow { position: fixed; z-index: 1; }
 }
 
 [hidden] { display: none !important; }
+
+
+/* ─────────────────────────────────────────────────────────────
+   設定台 — admin.html. Operated on a phone, mid-camp, in a hall.
+   Touch targets stay large and every control writes straight through.
+   ───────────────────────────────────────────────────────────── */
+
+.admin {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--cream);
+  padding: max(12px, env(safe-area-inset-top)) 0 max(10px, env(safe-area-inset-bottom));
+}
+.admin-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px 12px;
+  flex-shrink: 0;
+}
+.admin-head .title {
+  font-family: var(--serif);
+  font-weight: 900;
+  font-size: 24px;
+}
+.admin-head .live {
+  margin-left: auto;
+  font-size: 15px;
+  color: var(--sand);
+  font-weight: 700;
+}
+.admin-head .live b {
+  font-family: var(--num);
+  font-size: 18px;
+  color: var(--orange);
+}
+
+.admin-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin .card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 18px 20px;
+  box-shadow: var(--card-shadow);
+}
+.admin .card h2 {
+  margin: 0 0 14px;
+  font-size: 13px;
+  letter-spacing: .28em;
+  color: var(--sand);
+  font-weight: 700;
+}
+.admin .card.danger { box-shadow: inset 0 0 0 2px rgba(242, 103, 142, .35); }
+.admin .hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--sand-light);
+}
+
+/* 每格笑幾耐 — stacked on a phone; two 38px steppers plus a m:ss readout do
+   not fit side by side at 390px without clipping the last button. */
+.range-row { display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 560px) { .range-row { flex-direction: row; gap: 12px; } }
+.range {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--track);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+.range > span {
+  font-size: 12px;
+  color: var(--sand);
+  font-weight: 700;
+}
+.range b {
+  flex: 1;
+  text-align: center;
+  font-family: var(--num);
+  font-size: 21px;
+  font-variant-numeric: tabular-nums;
+}
+.step {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgba(64, 48, 27, .18);
+  touch-action: manipulation;
+}
+.step:active { transform: scale(.94); }
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+.presets button {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--track);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+  touch-action: manipulation;
+}
+.presets button i {
+  font-style: normal;
+  font-size: 11px;
+  color: var(--sand-light);
+  font-weight: 500;
+}
+.presets button.on {
+  background: var(--green);
+  color: #fff;
+}
+.presets button.on i { color: rgba(255, 255, 255, .82); }
+
+/* 效果 toggles */
+.toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--edge);
+  cursor: pointer;
+}
+.toggle:first-of-type { border-top: none; padding-top: 0; }
+.toggle input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: none;
+  width: 50px;
+  height: 30px;
+  margin: 2px 0 0;
+  border-radius: 99px;
+  background: var(--sand-dim);
+  position: relative;
+  transition: background .18s;
+  cursor: pointer;
+}
+.toggle input::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(64, 48, 27, .3);
+  transition: transform .18s;
+}
+.toggle input:checked { background: var(--green); }
+.toggle input:checked::after { transform: translateX(20px); }
+.toggle span {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.toggle span i {
+  display: block;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--sand-light);
+  margin-top: 2px;
+}
+.toggle.muted { opacity: .42; }
+
+/* 指定下一格 */
+.pickboard {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.pick-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #D3D7E0;
+  color: var(--ink);
+  font-family: var(--num);
+  font-size: 14px;
+  box-shadow: inset 0 0 0 1px rgba(64, 48, 27, .1);
+  touch-action: manipulation;
+  transition: transform .1s;
+}
+.pick-cell.on {
+  background: #FFE07A;
+  color: rgba(64, 48, 27, .55);
+}
+.pick-cell.picked {
+  background: var(--purple);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(126, 100, 180, .35);
+}
+.pick-cell:active { transform: scale(.9); }
+
+.pick-eff {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.pick-eff span {
+  font-size: 13px;
+  color: var(--sand);
+  font-weight: 700;
+}
+.pick-eff select {
+  flex: 1;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  padding: 10px 12px;
+  border: none;
+  border-radius: 11px;
+  background: var(--track);
+}
+.forced {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 11px 14px;
+  border-radius: 11px;
+  background: var(--purple);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+}
+.forced span { flex: 1; }
+.forced button {
+  background: rgba(255, 255, 255, .22);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 7px 13px;
+  border-radius: 8px;
+}
+
+.wide-reset {
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--pink);
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 2px rgba(242, 103, 142, .55);
+  touch-action: manipulation;
+}
+.wide-reset.armed { background: var(--pink); color: #fff; }
+
+.admin-foot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px 0;
+  font-size: 13px;
+  color: var(--sand-light);
+  border-top: 1px solid var(--edge);
+}
+.admin-foot a { margin-left: auto; font-size: 13px; text-decoration: underline; }
+.admin-foot a + a { margin-left: 0; }

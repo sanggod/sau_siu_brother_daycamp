@@ -10,10 +10,12 @@ public/                 ← Firebase Hosting 就係擺呢個 folder
   index.html            入口：一個 QR code + 兩個掣
   screen.html           大螢幕（投影／電視）
   play.html             手機抽格機（8 組每組一部）
+  admin.html            設定台（營期中途改設定）
   app.css               全部版面嘅樣式
   game.js               兩邊共用嘅小工具
   sync.js               遊戲狀態、抽格、魔法、Firebase／本機同步
-  screen.js / play.js   各自嘅畫面邏輯
+  screen.js / play.js / admin.js
+                        各自嘅畫面邏輯
   settings.js           ★ 營期設定（時間、魔法開關）
   firebase-config.js    ★ 要填 Firebase 設定
   sw.js                 離線快取
@@ -32,6 +34,7 @@ project/                Claude Design 原稿（唔會 deploy）
 | 入口／QR | `https://<你個 project>.web.app/` |
 | 大螢幕 | `https://<你個 project>.web.app/screen` |
 | 手機 | `https://<你個 project>.web.app/play` |
+| 設定台 | `https://<你個 project>.web.app/admin` |
 
 ## 部署
 
@@ -64,7 +67,34 @@ npm run serve     # http://127.0.0.1:5000
 
 開一個窗去 `/screen`，再開幾個去 `/play`，就可以綵排。
 
-## 營期設定
+## 設定台 `/admin`
+
+營期中途出咗狀況（細路唔夠時間、士氣低、要趕收尾）就開設定台，唔使 redeploy，
+改完全部機即刻跟。大螢幕右下角有個「設定」連結，或者直接開 `/admin`。
+
+| 改乜 | 做乜 |
+|---|---|
+| 每格笑幾耐 | 最短／最長各自 ±15 秒，或者撳 `趕時間 / 正常 / 耐啲 / 好耐` |
+| 魔法效果 | 閂咗就每次淨係老實翻一格 |
+| **負面魔法** | 淨係閂愁雲密佈／笑得唔夠久／愁哥哥反悔，好嘅魔法照舊 |
+| **食白果** | 閂咗就每次抽都一定開到新格 |
+| 大螢幕倒數 | 格仔角落嘅時間收唔收埋 |
+| **指定下一格** | 撳個 1–40 板，下次手機抽格一定抽到嗰格。可以順便指定效果。淨係管一次 |
+| 順風 / 正常 | 一撳搞掂：順風 = 負面同食白果都閂 |
+
+三件事要記住：
+
+- **設定係全場共用嘅，唔係淨係呢部機。** 抽格係喺撳掣嗰部手機度行，所以設定一定要
+  跟住個 game 走，唔係八部電話各有各嘅時間。
+- **改時間只影響之後抽嘅格。** 已經翻開嗰啲會照住原本嘅時間行完。
+- **撳「重新開始」唔會清走設定。** 你中途改咗係有原因嘅，開新一局唔應該靜靜雞還原。
+
+`settings.js` 而家淨係「開新一局嘅預設值」；設定台改嘅嘢會蓋過佢。
+
+`/admin` **冇密碼**，同 database rules 一樣係營期全開。個網址唔好印喺 QR 或者
+派畀組員 —— 大螢幕嗰條連結同你自己部機知就夠。
+
+## 營期預設值
 
 改 `public/settings.js`，再 `firebase deploy`：
 
@@ -255,6 +285,13 @@ npm run verify   # engine + end-to-end + pixel parity
   the checks always run in local sync mode. Without the stub they inherit
   whatever project the repo is pointed at and play a full game into the live
   camp database.
+- `verify:admin` — drives /admin and then checks what a *different* page
+  actually rolls: 400 draws with 負面魔法 off contain no gloom/half/regret, 食白果
+  off produces no misses, the 好耐 preset really lands 5–8 minute boxes, a forced
+  square is what comes up and is spent after one draw, the projector's
+  countdowns follow the toggle, and settings survive 重新開始. A toggle that
+  flips without reaching the draw would pass a naive test and still leave eight
+  phones disagreeing.
 - `verify:parity` — the pixel diff described above.
 
 ## Re-generating assets
