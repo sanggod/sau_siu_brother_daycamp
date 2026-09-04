@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&amp;family=Noto+Sans+TC:wght@400;500;700;900&amp;family=Archivo+Black&amp;display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;padding:0;background:#FFF6E0;color:#40301B;font-family:"Noto Sans TC",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+  *{box-sizing:border-box}
+  a{color:#E8761C;text-decoration:none}
+  a:hover{color:#c85e0c}
+  button{font-family:inherit;cursor:pointer;border:none}
+  @keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+  @keyframes breathe{0%,100%{opacity:.55}50%{opacity:1}}
+  @keyframes rise{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+<script src="./sync.js"></script>
+</helmet>
+
+<sc-if value="{{ isPC }}" hint-placeholder-val="{{ true }}">
+<div style="position:fixed;inset:0;display:grid;place-items:center;background:#FFF6E0">
+  <div style="{{ stageStyle }}">
+
+    <div style="position:absolute;top:0;left:0;right:0;height:16px;display:flex">
+      <div style="flex:1;background:#F7B71D"></div>
+      <div style="flex:1;background:#52A63C"></div>
+      <div style="flex:1;background:#6BB6DC"></div>
+      <div style="flex:1;background:#F2678E"></div>
+      <div style="flex:1;background:#7E64B4"></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 615px 1fr;gap:44px;height:100%">
+
+      <div style="display:flex;flex-direction:column;justify-content:space-between;padding:12px 0 8px">
+        <div>
+          <div style="font-size:20px;letter-spacing:.34em;color:#52A63C;font-weight:700">東東村 · 日營大挑戰</div>
+          <div style="height:6px;width:120px;background:#F7B71D;border-radius:99px;margin:18px 0 40px"></div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:900;font-size:104px;line-height:.98;letter-spacing:.02em;color:#7E64B4">愁哥哥</div>
+          <div style="font-family:'Noto Serif TC',serif;font-size:38px;line-height:1;margin:10px 0 6px;color:#C3AE86">同</div>
+          <div style="font-family:'Noto Serif TC',serif;font-weight:900;font-size:104px;line-height:.98;letter-spacing:.02em;color:#E8761C">笑弟弟</div>
+          <div style="font-size:27px;line-height:1.75;color:#8A7554;margin-top:38px;max-width:20em;text-wrap:pretty">因為哥哥天天愁眉苦臉，<br>弟弟天天眉開眼笑。</div>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:24px 26px;border-left:8px solid #52A63C;box-shadow:0 8px 20px rgba(64,48,27,.08);display:flex;flex-direction:column;gap:10px">
+          <div style="font-size:25px;font-weight:700;line-height:1.5">40 格全部變成笑弟弟，同一刻，就贏。</div>
+          <div style="font-size:21px;color:#8A7554;line-height:1.6">每格笑 2:00–3:00 之後會翻返愁哥哥。做任務要快。</div>
+        </div>
+      </div>
+
+      <div style="position:relative;align-self:center">
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(8,1fr);gap:6px;width:615px;height:984px;padding:12px;background:#fff;border-radius:14px;box-shadow:0 18px 44px rgba(64,48,27,.16),0 0 0 1px #EBDCB8">
+          <sc-for list="{{ cells }}" as="cell" hint-placeholder-count="40">
+            <div style="position:relative;perspective:900px">
+              <div style="{{ cell.inner }}">
+                <div style="{{ cell.front }}"></div>
+                <div style="{{ cell.back }}"></div>
+              </div>
+              <div style="{{ cell.numStyle }}">{{ cell.n }}</div>
+              <div style="{{ cell.timeStyle }}">{{ cell.timeText }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:22px;padding:12px 0 8px">
+        <div>
+          <div style="font-size:19px;letter-spacing:.3em;color:#8A7554;font-weight:700">已經笑住</div>
+          <div style="display:flex;align-items:baseline;gap:14px;margin-top:6px">
+            <div style="font-family:'Archivo Black',sans-serif;font-size:150px;line-height:.85;color:#E8761C">{{ countText }}</div>
+            <div style="font-family:'Archivo Black',sans-serif;font-size:46px;color:#D9C7A2">/ 40</div>
+          </div>
+          <div style="height:14px;background:#F1E4C6;border-radius:99px;overflow:hidden;margin-top:20px">
+            <div style="{{ barStyle }}"></div>
+          </div>
+        </div>
+
+        <div style="{{ flashStyle }}">
+          <div style="font-size:18px;letter-spacing:.3em;font-weight:700;opacity:.75">剛剛抽到</div>
+          <div style="display:flex;align-items:center;gap:24px;margin-top:8px">
+            <div style="font-family:'Archivo Black',sans-serif;font-size:104px;line-height:.9">{{ flashNum }}</div>
+            <div style="flex:1">
+              <div style="font-family:'Noto Serif TC',serif;font-weight:900;font-size:42px;line-height:1.1">{{ flashName }}</div>
+              <div style="font-size:22px;line-height:1.5;margin-top:8px;opacity:.9">{{ flashDesc }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px;min-height:0">
+          <div style="font-size:18px;letter-spacing:.3em;color:#8A7554;font-weight:700">紀錄</div>
+          <sc-for list="{{ log }}" as="row" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:18px;padding:13px 18px;background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(64,48,27,.06)">
+              <div style="{{ row.dot }}"></div>
+              <div style="font-family:'Archivo Black',sans-serif;font-size:30px;width:64px">{{ row.n }}</div>
+              <div style="font-size:22px;font-weight:700;flex:1">{{ row.name }}</div>
+              <div style="font-size:19px;color:#B9A67F;font-variant-numeric:tabular-nums">{{ row.time }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="font-size:18px;color:#B9A67F;display:flex;gap:10px;align-items:center">
+          <div style="{{ dotStyle }}"></div>{{ modeText }} · 第 {{ roundText }} 局
+          <button onClick="{{ onSwap }}" style="margin-left:auto;background:transparent;color:#B9A67F;font-size:17px;text-decoration:underline;padding:0">{{ swapLabel }}</button>
+          <button onClick="{{ onReset }}" style="{{ pcResetStyle }}">{{ resetLabel }}</button>
+        </div>
+      </div>
+    </div>
+
+    <sc-if value="{{ won }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;display:grid;place-items:center;background:#F7B71D;color:#40301B;animation:pop .5s both">
+        <div style="text-align:center">
+          <div style="font-family:'Noto Serif TC',serif;font-weight:900;font-size:190px;line-height:1">全村都笑咗！</div>
+          <div style="font-size:40px;margin-top:24px;font-weight:700">40 格同一刻變成笑弟弟</div>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;inset:0;display:flex;flex-direction:column;background:#FFF6E0;padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))">
+
+  <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <div style="{{ dotStyle }}"></div>
+    <div style="font-size:14px;letter-spacing:.22em;color:#52A63C;font-weight:700;flex:1">東東村 · 抽格機</div>
+    <div style="font-family:'Archivo Black',sans-serif;font-size:22px;color:#E8761C">{{ countText }}<span style="color:#D9C7A2">/40</span></div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:0;overflow-y:auto;padding:14px 0">
+    <sc-if value="{{ hasDraw }}" hint-placeholder-val="{{ false }}">
+      <div style="{{ mFlashStyle }}">
+        <div style="font-size:13px;letter-spacing:.3em;font-weight:700;opacity:.75">翻開第</div>
+        <div style="font-family:'Archivo Black',sans-serif;font-size:clamp(72px,19vh,150px);line-height:.88;margin:2px 0 6px">{{ flashNum }}</div>
+        <div style="font-size:13px;letter-spacing:.3em;font-weight:700;opacity:.75">格</div>
+        <div style="font-family:'Noto Serif TC',serif;font-weight:900;font-size:clamp(30px,5.6vh,44px);line-height:1.15;margin-top:clamp(14px,3vh,26px)">{{ flashName }}</div>
+        <div style="font-size:clamp(15px,2.7vh,19px);line-height:1.55;margin-top:8px;opacity:.9;max-width:17em">{{ flashDesc }}</div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noDraw }}" hint-placeholder-val="{{ true }}">
+      <div style="color:#B9A67F;display:flex;flex-direction:column;align-items:center;gap:clamp(12px,3vh,22px)">
+        <img src="assets/sau.png" alt="愁哥哥" style="width:clamp(80px,15vh,140px);height:auto;border-radius:10px;box-shadow:0 8px 20px rgba(64,48,27,.14);filter:grayscale(1) brightness(1.03)">
+        <div style="font-family:'Noto Serif TC',serif;font-size:clamp(20px,3.6vh,28px);line-height:1.5;color:#8A7554">完成一個任務，<br>就按下面抽一格。</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:12px;flex-shrink:0">
+    <button onClick="{{ onDraw }}" style="{{ drawStyle }}" style-active="transform:scale(.97)">{{ drawLabel }}</button>
+    <button onClick="{{ onSheet }}" style="height:clamp(46px,9vh,60px);flex-shrink:0;border-radius:14px;background:#fff;color:#40301B;font-size:clamp(16px,2.6vh,19px);font-weight:700;letter-spacing:.06em;box-shadow:0 0 0 1px #EBDCB8,0 2px 8px rgba(64,48,27,.06)" style-active="transform:scale(.98)">睇住緊嘅計時（{{ countText }}）</button>
+  </div>
+
+  <sc-if value="{{ sheet }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:#FFF6E0;display:flex;flex-direction:column;padding:max(14px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));animation:rise .25s both">
+      <div style="display:flex;align-items:center;gap:14px;flex-shrink:0;padding-bottom:14px">
+        <div style="font-family:'Noto Serif TC',serif;font-weight:900;font-size:30px;flex:1;color:#E8761C">笑住嘅格</div>
+        <button onClick="{{ onSheet }}" style="height:44px;padding:0 20px;border-radius:12px;background:#fff;color:#40301B;font-size:17px;font-weight:700;box-shadow:0 0 0 1px #EBDCB8">閂</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ sheetRows }}" as="row" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(64,48,27,.06)">
+            <div style="font-family:'Archivo Black',sans-serif;font-size:26px;width:52px">{{ row.n }}</div>
+            <div style="flex:1;height:9px;background:#F1E4C6;border-radius:99px;overflow:hidden">
+              <div style="{{ row.bar }}"></div>
+            </div>
+            <div style="{{ row.timeStyle }}">{{ row.text }}</div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ sheetEmpty }}" hint-placeholder-val="{{ true }}">
+          <div style="color:#B9A67F;font-size:19px;padding:30px 4px;line-height:1.6">而家 40 格全部都係愁哥哥。</div>
+        </sc-if>
+      </div>
+      <div style="flex-shrink:0;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:14px;color:#B9A67F;line-height:1.6;display:flex;gap:12px;align-items:center">{{ modeText }} · 第 {{ roundText }} 局
+          <button onClick="{{ onSwap }}" style="margin-left:auto;background:transparent;color:#B9A67F;font-size:14px;text-decoration:underline;padding:0">{{ swapLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;minSeconds&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:120,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:30,&quot;max&quot;:600,&quot;unit&quot;:&quot;s&quot;,&quot;section&quot;:&quot;玩法&quot;},&quot;maxSeconds&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:180,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:30,&quot;max&quot;:900,&quot;unit&quot;:&quot;s&quot;,&quot;section&quot;:&quot;玩法&quot;},&quot;magicEnabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;玩法&quot;},&quot;showTimers&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;玩法&quot;},&quot;forceView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;pc&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;pc&quot;,&quot;mobile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;顯示&quot;}}">
+class Component extends DCLogic {
+  state = { st: null, now: Date.now(), view: null, scale: 1, rolling: false, rollN: 7, sheet: false, flash: null, confirm: false };
+
+  componentDidMount() {
+    let q = null;
+    try { q = new URLSearchParams(location.search).get('view'); } catch (e) {}
+    const forced = this.props.forceView && this.props.forceView !== 'auto' ? this.props.forceView : null;
+    const view = forced || (q === 'pc' || q === 'mobile' ? q : (window.innerWidth < 900 ? 'mobile' : 'pc'));
+    this.fit = () => this.setState({ scale: Math.min(window.innerWidth / 1920, window.innerHeight / 1080) });
+    this.setState({ view, scale: Math.min(window.innerWidth / 1920, window.innerHeight / 1080) });
+    window.addEventListener('resize', this.fit);
+    this.timer = setInterval(() => this.setState({ now: Date.now() }), 200);
+    this.key = (e) => { if (this.state.view === 'pc' && (e.key === 'r' || e.key === 'R')) this.reset(); };
+    window.addEventListener('keydown', this.key);
+    const boot = () => {
+      window.FlipSync.configure({
+        min: this.props.minSeconds || 120,
+        max: this.props.maxSeconds || 180,
+        magic: this.props.magicEnabled !== false
+      });
+      this.off = window.FlipSync.onState((st) => {
+        const prev = this.state.st;
+        const newDraw = st && st.last && (!prev || !prev.last || prev.last.id !== st.last.id);
+        this.setState({ st });
+        if (newDraw) {
+          this.setState({ flash: st.last });
+          clearTimeout(this.ft);
+          this.ft = setTimeout(() => this.setState({ flash: null }), 6000);
+        }
+      });
+    };
+    if (window.FlipSync) boot();
+    else this.wait = setInterval(() => { if (window.FlipSync) { clearInterval(this.wait); boot(); } }, 60);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.fit);
+    window.removeEventListener('keydown', this.key);
+    clearInterval(this.timer); clearInterval(this.wait); clearInterval(this.roll);
+    clearTimeout(this.ft); clearTimeout(this.rt); clearTimeout(this.ct);
+    if (this.off) this.off();
+  }
+
+  draw = () => {
+    if (this.state.rolling || !window.FlipSync) return;
+    this.setState({ rolling: true });
+    this.roll = setInterval(() => this.setState({ rollN: 1 + Math.floor(Math.random() * 40) }), 55);
+    this.rt = setTimeout(() => { clearInterval(this.roll); this.setState({ rolling: false }); }, 800);
+    window.FlipSync.draw();
+  };
+
+  reset = () => {
+    if (!this.state.confirm) {
+      this.setState({ confirm: true });
+      this.ct = setTimeout(() => this.setState({ confirm: false }), 3500);
+      return;
+    }
+    clearTimeout(this.ct);
+    this.setState({ confirm: false, flash: null });
+    if (window.FlipSync) window.FlipSync.reset();
+  };
+
+  swap = () => {
+    const v = this.state.view === 'pc' ? 'mobile' : 'pc';
+    try { history.replaceState(null, '', '?view=' + v); } catch (e) {}
+    this.setState({ view: v, sheet: false });
+  };
+
+  mmss(ms) {
+    const t = Math.max(0, Math.round(ms / 1000));
+    return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+  }
+  clock(ts) {
+    const d = new Date(ts);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0') + ':' + String(d.getSeconds()).padStart(2, '0');
+  }
+  tone(t) { return t === 'good' ? '#52A63C' : t === 'bad' ? '#F2678E' : '#F7B71D'; }
+
+  renderVals() {
+    const st = this.state.st, now = this.state.now;
+    const view = this.state.view;
+    const showTimers = this.props.showTimers !== false;
+    const live = {};
+    if (st && st.boxes) for (const k in st.boxes) {
+      const b = st.boxes[k];
+      if (b && b.at + b.dur > now) live[+k] = b;
+    }
+    const count = Object.keys(live).length;
+
+    const cells = [];
+    for (let n = 1; n <= 40; n++) {
+      const c = (n - 1) % 5, r = Math.floor((n - 1) / 5);
+      const b = live[n];
+      const rem = b ? b.at + b.dur - now : 0;
+      const urgent = !!b && rem < 20000;
+      const edge = 'inset 0 0 0 1px rgba(64,48,27,.14), inset 0 1px 0 rgba(255,255,255,.5)';
+      const face = {
+        position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
+        backgroundSize: '500% 800%', backgroundRepeat: 'no-repeat',
+        backgroundBlendMode: 'multiply', borderRadius: '3px', boxShadow: edge
+      };
+      cells.push({
+        n: n,
+        inner: {
+          position: 'absolute', inset: 0, transformStyle: 'preserve-3d',
+          transition: 'transform .8s cubic-bezier(.5,.02,.25,1)',
+          transform: b ? 'rotateY(180deg)' : 'rotateY(0deg)'
+        },
+        front: Object.assign({}, face, {
+          backgroundImage: 'url(assets/sau.png)',
+          backgroundPosition: (c * 25) + '% ' + (r * 100 / 7) + '%',
+          backgroundColor: '#D3D7E0',
+          filter: 'grayscale(1) contrast(1.03)',
+          opacity: b ? 0 : 1, transition: 'opacity 0s .4s'
+        }),
+        back: Object.assign({}, face, {
+          transform: 'rotateY(180deg)',
+          backgroundImage: 'url(assets/siu-m.png)',
+          backgroundPosition: (c * 25) + '% ' + (r * 100 / 7) + '%',
+          backgroundColor: '#FFE07A',
+          filter: 'saturate(1.12)',
+          boxShadow: edge + ', 0 0 20px rgba(247,183,29,.6)',
+          opacity: b ? 1 : 0, transition: 'opacity 0s .4s'
+        }),
+        numStyle: {
+          position: 'absolute', top: '4px', left: '4px', fontFamily: "'Archivo Black',sans-serif",
+          fontSize: '19px', lineHeight: 1, padding: '3px 7px 4px', borderRadius: '5px',
+          color: '#40301B', background: 'rgba(255,255,255,.94)',
+          boxShadow: '0 1px 3px rgba(64,48,27,.25)', pointerEvents: 'none'
+        },
+        timeStyle: {
+          position: 'absolute', bottom: '4px', right: '4px', padding: '1px 6px 2px',
+          borderRadius: '4px', fontSize: '14px', fontWeight: 800, fontVariantNumeric: 'tabular-nums',
+          background: urgent ? '#F2678E' : 'rgba(255,255,255,.92)',
+          color: urgent ? '#fff' : '#40301B',
+          boxShadow: '0 1px 3px rgba(64,48,27,.2)',
+          opacity: b && showTimers ? 1 : 0, transition: 'opacity .3s',
+          animation: urgent ? 'breathe 1s infinite' : 'none', pointerEvents: 'none'
+        },
+        timeText: b ? this.mmss(rem) : ''
+      });
+    }
+
+    const last = this.state.flash || (st && st.last) || null;
+    const rolling = this.state.rolling;
+    const toneC = last ? this.tone(last.tone) : '#F7B71D';
+    const onTone = last && last.tone === 'plain' ? '#40301B' : '#fff';
+    const flashActive = !!this.state.flash;
+
+    const log = ((st && st.draws) || []).slice(0, 6).map((d) => ({
+      n: d.n, name: d.name, time: this.clock(d.at),
+      dot: { width: '12px', height: '12px', borderRadius: '99px', background: this.tone(d.tone), flexShrink: 0 }
+    }));
+
+    const sheetRows = Object.keys(live).map((k) => {
+      const b = live[k], rem = b.at + b.dur - now, pct = Math.max(0, Math.min(100, rem / b.dur * 100));
+      const urgent = rem < 20000;
+      return {
+        n: +k, text: this.mmss(rem), rem: rem,
+        bar: { height: '100%', width: pct + '%', background: urgent ? '#F2678E' : '#52A63C', borderRadius: '99px', transition: 'width .3s linear' },
+        timeStyle: { fontFamily: "'Archivo Black',sans-serif", fontSize: '19px', width: '62px', textAlign: 'right', color: urgent ? '#F2678E' : '#40301B' }
+      };
+    }).sort((a, b) => a.rem - b.rem);
+
+    const online = window.FlipSync ? window.FlipSync.online : false;
+    const mode = window.FlipSync ? window.FlipSync.mode : 'booting';
+
+    return {
+      isPC: view === 'pc', isMobile: view === 'mobile',
+      stageStyle: { position: 'absolute', left: '50%', top: '50%', width: '1920px', height: '1080px', padding: '48px', transform: 'translate(-50%,-50%) scale(' + this.state.scale + ')', transformOrigin: 'center center' },
+      cells: cells,
+      countText: String(count),
+      roundText: String((st && st.round) || 1),
+      won: count >= 40,
+      barStyle: { height: '100%', width: (count / 40 * 100) + '%', background: '#52A63C', borderRadius: '99px', transition: 'width .5s' },
+
+      hasDraw: !!last || rolling,
+      noDraw: !last && !rolling,
+      flashNum: rolling ? String(this.state.rollN) : last ? String(last.n) : '',
+      flashName: rolling ? '抽…' : last ? last.name : '等緊第一次抽格',
+      flashDesc: rolling ? '' : last ? last.desc : '',
+      flashStyle: {
+        padding: '26px 28px', borderRadius: '14px', transition: 'background .4s,color .4s',
+        background: flashActive ? toneC : '#fff',
+        color: flashActive ? onTone : '#C3AE86',
+        boxShadow: flashActive ? '0 14px 32px rgba(64,48,27,.22)' : '0 0 0 2px #F1E4C6'
+      },
+      mFlashStyle: {
+        padding: 'clamp(16px,3.5vh,30px) 26px clamp(18px,4vh,34px)', borderRadius: '20px',
+        width: '100%', maxWidth: '420px', flexShrink: 0,
+        animation: 'pop .35s both',
+        background: rolling ? '#fff' : toneC,
+        color: rolling ? '#C3AE86' : onTone,
+        boxShadow: rolling ? '0 0 0 2px #F1E4C6' : '0 14px 32px rgba(64,48,27,.2)'
+      },
+
+      onSwap: this.swap,
+      swapLabel: view === 'pc' ? '切去手機版' : '切去大螢幕版',
+      onDraw: this.draw,
+      drawLabel: rolling ? '抽…' : '抽 一 格',
+      drawStyle: {
+        height: 'clamp(84px,17vh,132px)', flexShrink: 0, borderRadius: '18px',
+        fontFamily: "'Noto Serif TC',serif", fontWeight: 900,
+        fontSize: 'clamp(30px,6vh,46px)', letterSpacing: '.1em', transition: 'transform .1s,background .2s',
+        background: rolling ? '#EDE0C0' : '#52A63C', color: rolling ? '#B9A67F' : '#fff',
+        boxShadow: rolling ? 'none' : '0 9px 0 #3B7A2B'
+      },
+      onSheet: () => this.setState({ sheet: !this.state.sheet }),
+      sheet: this.state.sheet, sheetRows: sheetRows, sheetEmpty: sheetRows.length === 0,
+      onReset: this.reset,
+      resetLabel: this.state.confirm ? '再按一次確認' : '重置全局',
+      pcResetStyle: {
+        background: this.state.confirm ? '#F2678E' : 'transparent',
+        color: this.state.confirm ? '#fff' : '#F2678E',
+        fontSize: '17px', fontWeight: 700, padding: '8px 16px', borderRadius: '8px',
+        boxShadow: 'inset 0 0 0 2px rgba(242,103,142,.55)', transition: 'background .2s,color .2s'
+      },
+
+      log: log,
+      modeText: mode === 'firebase' ? (online ? 'Firebase 已連線' : 'Firebase 斷線中') : mode === 'local' ? '本機同步（同一部機）' : '連線中…',
+      dotStyle: { width: '12px', height: '12px', borderRadius: '99px', flexShrink: 0, background: mode === 'firebase' ? (online ? '#52A63C' : '#F2678E') : '#F7B71D' }
+    };
+  }
+}
+</script>
+</body>
+</html>
