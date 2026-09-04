@@ -174,8 +174,8 @@ function check(label, ok, detail) {
   const many = await screen.locator('.cell.on').count();
   check('screen: board filled to exactly 32', many === 32 && fill32.reached === 32,
     `${many} on after ${fill32.presses} presses`);
-  check('screen: some of those presses missed', fill32.presses > 32,
-    `${fill32.presses} presses for 32 squares`);
+  check('screen: filling took at least as many presses as squares',
+    fill32.presses >= 32, `${fill32.presses} presses for 32 squares`);
   check('screen: endgame focus mode past 30',
     await screen.locator('.board.endgame').count() === 1);
   check('screen: 仲差 N 格 shown', await screen.locator('#togo').isVisible(),
@@ -253,6 +253,37 @@ function check(label, ok, detail) {
   check('play: draw button live again after 再嚟過',
     !(await phone.locator('#draw').isDisabled()),
     (await phone.locator('#draw').textContent()).trim());
+
+  /* ── a miss surfaces as 食白果 and moves nothing ── */
+  await fillTo(15);
+  const miss = await phone.evaluate(() => {
+    const S = window.FlipSync;
+    const read = () => {
+      let s0 = null, off = null;
+      off = S.onState(s => { s0 = s; });
+      if (off) off();
+      return s0;
+    };
+    // Key order is not stable across rebuilds, so compare canonically.
+    const canon = (b) => Object.keys(b || {}).sort()
+      .map(k => k + ':' + b[k].at + '/' + b[k].dur).join(',');
+    for (let g = 0; g < 600; g++) {
+      const before = canon(read().boxes);
+      S.draw();
+      const st = read();
+      if (st.last && st.last.eff === 'miss') {
+        return { found: true, n: st.last.n, presses: g + 1,
+                 unchanged: before === canon(st.boxes) };
+      }
+    }
+    return { found: false };
+  });
+  check('play: a miss comes up', miss.found, `after ${miss.presses} presses`);
+  check('play: the miss moved nothing on the board', miss.unchanged === true);
+  await screen.waitForTimeout(400);
+  check('screen: the miss reads 食白果',
+    (await screen.locator('#flash-name').textContent()).trim() === '食白果',
+    (await screen.locator('#flash-name').textContent()).trim());
 
   /* ── 入口 ── */
   const land = await ctx.newPage();

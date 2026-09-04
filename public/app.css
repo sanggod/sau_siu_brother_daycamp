@@ -238,16 +238,15 @@ button { font-family: inherit; cursor: pointer; border: none; }
    and lets the countdown — which does drive the game — read first. */
 .cell .num {
   position: absolute;
-  top: 3px;
+  top: 2px;
   left: 3px;
   font-family: var(--num);
-  font-size: 12px;
+  font-size: 9px;
   line-height: 1;
-  padding: 2px 5px 3px;
-  border-radius: 4px;
-  color: var(--sand);
-  background: rgba(255, 255, 255, .8);
-  box-shadow: 0 1px 2px rgba(64, 48, 27, .14);
+  padding: 1px 3px 2px;
+  border-radius: 3px;
+  color: var(--sand-light);
+  background: rgba(255, 255, 255, .55);
   pointer-events: none;
   z-index: 2;
 }
@@ -288,11 +287,11 @@ button { font-family: inherit; cursor: pointer; border: none; }
 /* The ring is what marks a square as still to do; the badge only has to say
    which one, so it stays small here too — just purple enough to belong to it. */
 .board.endgame .cell:not(.on) .num {
-  font-size: 15px;
-  padding: 3px 6px 4px;
+  font-size: 11px;
+  padding: 2px 5px 3px;
   background: var(--purple);
   color: #fff;
-  box-shadow: 0 2px 5px rgba(64, 48, 27, .28);
+  box-shadow: 0 1px 4px rgba(64, 48, 27, .25);
 }
 .board.endgame .cell:not(.on)::after {
   content: '';
