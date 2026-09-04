@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>愁哥哥同笑弟弟 · 東東村日營</title>
+<meta name="description" content="東東村日營翻格遊戲 — 揀大螢幕定手機">
+<meta name="theme-color" content="#FFF6E0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="landing">
+
+<div class="rainbow">
+  <i style="background:#F7B71D"></i>
+  <i style="background:#52A63C"></i>
+  <i style="background:#6BB6DC"></i>
+  <i style="background:#F2678E"></i>
+  <i style="background:#7E64B4"></i>
+</div>
+
+<main class="land">
+  <div class="eyebrow">東東村 · 日營大挑戰</div>
+  <h1>
+    <span class="name sad">愁哥哥</span>
+    <span class="name-join">同</span>
+    <span class="name glad">笑弟弟</span>
+  </h1>
+  <p class="land-blurb">完成任務，抽一格，<br>睇住愁哥哥變返笑弟弟。</p>
+
+  <div class="qr-card">
+    <div class="qr-label">8 部手機掃呢個</div>
+    <img class="qr" src="qr.svg" alt="抽格機網址 QR code" width="256" height="256">
+    <code class="qr-url" id="qr-url">…</code>
+  </div>
+
+  <div class="land-actions">
+    <a class="land-btn primary" href="play">手機 · 抽格機</a>
+    <a class="land-btn" href="screen">大螢幕 · 投影版</a>
+  </div>
+
+  <p class="land-note">
+    大螢幕開一部（投影／電視），8 組各開一部手機。<br>
+    重置全局只喺大螢幕度。
+  </p>
+</main>
+
+<script>
+  // Printed from the live origin, so it stays right even if qr.svg is stale.
+  document.getElementById('qr-url').textContent =
+    location.origin + location.pathname.replace(/\/(index\.html)?$/, '') + '/play';
+</script>
+<script src="register-sw.js"></script>
+</body>
+</html>

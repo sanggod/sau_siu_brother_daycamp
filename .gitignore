@@ -1,0 +1,8 @@
+node_modules/
+package-lock.json
+.firebase/
+firebase-debug.log*
+database-debug.log*
+tools/*.tmp.html
+__pycache__/
+.DS_Store

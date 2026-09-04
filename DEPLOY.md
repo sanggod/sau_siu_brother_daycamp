@@ -1,0 +1,204 @@
+# 愁哥哥同笑弟弟 — 落機同部署
+
+呢份係實作版嘅說明。設計原稿（Claude Design 出嘅 prototype）仍然放喺
+`project/`，冇改過，可以對住睇。
+
+## 檔案喺邊
+
+```
+public/                 ← Firebase Hosting 就係擺呢個 folder
+  index.html            入口：一個 QR code + 兩個掣
+  screen.html           大螢幕（投影／電視）
+  play.html             手機抽格機（8 組每組一部）
+  app.css               全部版面嘅樣式
+  game.js               兩邊共用嘅小工具
+  sync.js               遊戲狀態、抽格、魔法、Firebase／本機同步
+  screen.js / play.js   各自嘅畫面邏輯
+  settings.js           ★ 營期設定（時間、魔法開關）
+  firebase-config.js    ★ 要填 Firebase 設定
+  sw.js                 離線快取
+  assets/*.webp         已經焗好嘅畫（見下面）
+  vendor/               Firebase SDK 10.12.5（同源，唔使等 gstatic）
+firebase.json           Hosting + Database 設定
+database.rules.json     Realtime Database 規則
+tools/                  出圖、出 QR、驗證用嘅script
+project/                Claude Design 原稿（唔會 deploy）
+```
+
+網址（`cleanUrls` 開咗，所以冇 `.html`）：
+
+| 用途 | 網址 |
+|---|---|
+| 入口／QR | `https://<你個 project>.web.app/` |
+| 大螢幕 | `https://<你個 project>.web.app/screen` |
+| 手機 | `https://<你個 project>.web.app/play` |
+
+## 部署
+
+```bash
+npm i -g firebase-tools
+firebase login
+
+# 1. 填 public/firebase-config.js（Firebase console → 專案設定 → 你的應用程式）
+# 2. 建立 Realtime Database（區域揀 asia-southeast1）
+# 3. 寫低你個 project id
+echo '{"projects":{"default":"你個-project-id"}}' > .firebaserc
+
+# 4. 出返個 QR（指住手機版網址）
+npm run qr https://你個-project-id.web.app/play
+
+# 5. 上機
+firebase deploy
+```
+
+`firebase deploy` 會一次過推 Hosting 同 Database rules。
+
+### 想先試玩，未有 Firebase？
+
+`firebase-config.js` 嘅 `databaseURL` 留空，個 game 會行**本機模式**：
+同一部機開幾多個窗都會同步（BroadcastChannel + localStorage）。
+
+```bash
+npm run serve     # http://127.0.0.1:5000
+```
+
+開一個窗去 `/screen`，再開幾個去 `/play`，就可以綵排。
+
+## 營期設定
+
+改 `public/settings.js`，再 `firebase deploy`：
+
+```js
+window.FLIP_SETTINGS = {
+  minSeconds: 120,   // 每格最短笑幾耐
+  maxSeconds: 180,   // 每格最長笑幾耐
+  magic: true,       // 魔法效果
+  showTimers: true   // 大螢幕格仔上顯唔顯示倒數
+};
+```
+
+唔想 redeploy 嘅話，個別機可以用網址覆寫，例如
+`/screen?min=90&max=150&timers=0`、`/play?magic=0`。
+
+## 玩法（同原設計一樣）
+
+- 40 格，5 欄 × 8 行。正面愁哥哥（灰），反面笑弟弟（暖黃 + 光暈）。
+- 組員完成任務 → 操作員撳手機「抽一格」→ 隨機抽 1–40 → 大螢幕即刻翻。
+- 每格笑 2:00–3:00（隨機）之後自動翻返愁哥哥。
+- 抽到已經翻開嘅格 → 計時重新計。
+- 40 格同一刻全部係笑弟弟 → 大螢幕出「全村都笑咗！」
+- **重置只在大螢幕**：右下角「重置全局」撳兩次，或者撳 `R` 兩次。手機淨係可以抽格。
+
+### 魔法
+
+| 名 | 機率 | 效果 |
+|---|---|---|
+| 翻一格 | 60% | 正常翻一格 |
+| 傳染笑 | 8% | 上下左右四格一齊翻 |
+| 大笑三聲 | 8% | 另外三格隨機一齊翻 |
+| 笑到停唔到 | 7% | 該格計時加倍（4–6 分鐘） |
+| 全村一齊笑 | 3% | 整整一行五格翻開 |
+| 愁雲密佈 | 6% | 翻該格，但收返一格已翻開嘅 |
+| 笑得唔夠久 | 5% | 兩格計時剩返一半 |
+| 愁哥哥反悔 | 3% | 唔翻，仲要收返一格 |
+
+## 收營之後
+
+`database.rules.json` 而家係全開（8 部手機唔使登入即開即用）。收咗營記得改：
+
+```json
+{ "rules": { "flipgame": { ".read": true, ".write": false } } }
+```
+
+再 `firebase deploy --only database`。
+
+---
+
+# Notes for whoever maintains this
+
+## What changed from the design prototype
+
+The prototype in `project/` runs on Claude Design's `dc-runtime`: it pulls
+React, ReactDOM and **Babel standalone** off unpkg and compiles the component
+in the browser on every load. That is right for a design tool and wrong for
+eight phones on camp wifi. `public/` is the same design rebuilt as plain
+HTML/CSS/JS — no framework, no build step, no runtime compilation.
+
+Everything visual is transcribed from the prototype's inline styles; the
+palette, metrics and copy are unchanged.
+
+### The board artwork is pre-baked
+
+Each of the 40 cells showed two faces, and each face ran
+`background-blend-mode: multiply` against a face colour plus a CSS `filter`
+(`grayscale(1) contrast(1.03)` on 愁哥哥, `saturate(1.12)` on 笑弟弟). That is
+80 filtered compositing layers on the projector machine, every frame of every
+flip.
+
+`tools/bake-assets.py` computes that same blend and filter maths once, ahead
+of time, and writes the result to WebP. The pages then draw plain bitmaps.
+
+`tools/verify-parity.js` renders a cell both ways in Chromium and diffs the
+pixels, so the shortcut stays honest:
+
+```
+worst channel difference across all slices: 8/255
+mean channel difference: 0.3 – 1.2 / 255
+```
+
+The residual is WebP quantisation on hard edges, not a maths error — a wrong
+matrix would move the *mean*, which is what the check actually gates on.
+
+Side effect: **3752 KB of PNG became 215 KB of WebP.**
+
+### One real bug fixed
+
+The prototype stored flipped boxes as `boxes: { "1": …, "17": … }`. Realtime
+Database silently converts an object whose keys are integers into a sparse
+**array**, so `boxes` would come back with null holes in it — and the `愁雲密佈`
+/ `愁哥哥反悔` effects pick a random key to un-flip, so they could "take back"
+a hole instead of a real box, doing nothing while telling the hall they did.
+
+Boxes are now keyed `"b1"`.. `"b40"`. `tools/verify-engine.js` asserts the
+shape over 4000 draws.
+
+### Other production bits
+
+- **Firebase SDK is vendored** into `public/vendor/` (pinned 10.12.5) instead
+  of loaded from gstatic, so a slow DNS lookup on camp wifi cannot stall the
+  board. `sync.js` falls back to the CDN if the vendored copy is missing.
+- **Service worker** (`sw.js`) precaches the shell. HTML is network-first so a
+  redeploy is always picked up; assets are cache-first against a versioned
+  cache. Bump `VERSION` in `sw.js` when you change CSS/JS.
+- **Web app manifest** so the 8 phones can add 抽格機 to their home screen and
+  run it without browser chrome.
+- Fonts still come from Google Fonts, as in the design. They are behind
+  `display=swap` with real system-CJK fallbacks — the pages render correctly
+  before (or without) the webfonts. If camp wifi turns out to be bad enough to
+  matter, self-hosting subset `.woff2` files is the next step.
+
+## Verifying
+
+```bash
+npm i            # playwright, for the checks
+npm run verify   # engine + end-to-end + pixel parity
+```
+
+- `verify:engine` — 4000 draws through the real `sync.js`: storage shape, the
+  40-box ceiling, the win condition, and that all 8 magic effects fire at
+  their designed weights.
+- `verify:app` — loads all three pages against a server that mimics Firebase's
+  clean URLs, draws on the phone, and asserts the projector flips; checks the
+  reset double-press, the timer sheet, and that no reset control leaked onto
+  the phone.
+- `verify:parity` — the pixel diff described above.
+
+## Re-generating assets
+
+```bash
+npm run assets                                  # re-bake from project/assets/
+npm run qr https://your-project.web.app/play    # after a domain change
+```
+
+The landing page prints the phone URL as text from `location.origin`, so that
+line is always right even if `qr.svg` is stale.

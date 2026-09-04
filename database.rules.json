@@ -1,0 +1,14 @@
+{
+  "rules": {
+    // 營期設定：全世界只要有網址就可以讀寫 flipgame 呢一支。
+    // 8 部手機唔使登入，即開即用 —— 但收營之後記得改返 false，
+    // 或者換成下面註解嗰段（只准睇，唔准寫）。
+    "flipgame": {
+      ".read": true,
+      ".write": true
+    }
+
+    // 收營之後：
+    // "flipgame": { ".read": true, ".write": false }
+  }
+}

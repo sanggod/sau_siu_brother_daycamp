@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>愁哥哥同笑弟弟 · 抽格機</title>
+<meta name="description" content="東東村日營翻格遊戲 — 組員抽格用">
+<meta name="theme-color" content="#FFF6E0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="抽格機">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="phone">
+
+  <div class="phone-head">
+    <div class="dot" id="dot"></div>
+    <div class="title">東東村 · 抽格機</div>
+    <div class="count"><span id="count-n">0</span><span>/40</span></div>
+  </div>
+
+  <div class="phone-body">
+    <div class="m-flash" id="flash" hidden>
+      <div class="label">翻開第</div>
+      <div class="n" id="flash-n"></div>
+      <div class="label">格</div>
+      <div class="name" id="flash-name"></div>
+      <div class="desc" id="flash-desc"></div>
+    </div>
+
+    <div class="idle" id="idle">
+      <img src="assets/sau-thumb.webp" alt="愁哥哥" width="420" height="673">
+      <p>完成一個任務，<br>就按下面抽一格。</p>
+    </div>
+  </div>
+
+  <div class="phone-actions">
+    <button class="btn-draw" id="draw">抽 一 格</button>
+    <button class="btn-sheet" id="open-sheet">睇住緊嘅計時（<span id="count-b">0</span>）</button>
+  </div>
+
+  <div class="sheet" id="sheet" hidden>
+    <div class="sheet-head">
+      <div class="title">笑住嘅格</div>
+      <button id="close-sheet">閂</button>
+    </div>
+    <div class="sheet-list" id="sheet-list">
+      <div class="sheet-empty" id="sheet-empty">而家 40 格全部都係愁哥哥。</div>
+    </div>
+    <div class="sheet-foot">
+      <span id="mode">連線中… · 第 1 局</span>
+      <a class="swap" href="screen">切去大螢幕版</a>
+    </div>
+  </div>
+</div>
+
+<script src="settings.js"></script>
+<script src="game.js"></script>
+<script src="sync.js"></script>
+<script src="play.js"></script>
+<script src="register-sw.js"></script>
+</body>
+</html>

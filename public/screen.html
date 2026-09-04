@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>愁哥哥同笑弟弟 · 大螢幕</title>
+<meta name="description" content="東東村日營翻格遊戲 — 投影大螢幕版">
+<meta name="theme-color" content="#FFF6E0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="assets/sau.webp">
+<link rel="preload" as="image" href="assets/siu.webp">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700;900&family=Archivo+Black&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div class="stage-wrap">
+  <div class="stage" id="stage">
+
+    <div class="rainbow">
+      <i style="background:#F7B71D"></i>
+      <i style="background:#52A63C"></i>
+      <i style="background:#6BB6DC"></i>
+      <i style="background:#F2678E"></i>
+      <i style="background:#7E64B4"></i>
+    </div>
+
+    <div class="columns">
+
+      <div class="intro">
+        <div>
+          <div class="eyebrow">東東村 · 日營大挑戰</div>
+          <div class="rule"></div>
+          <div class="name sad">愁哥哥</div>
+          <div class="name-join">同</div>
+          <div class="name glad">笑弟弟</div>
+          <p class="blurb">因為哥哥天天愁眉苦臉，<br>弟弟天天眉開眼笑。</p>
+        </div>
+        <div class="rules">
+          <b>40 格全部變成笑弟弟，同一刻，就贏。</b>
+          <span>每格笑 2:00–3:00 之後會翻返愁哥哥。做任務要快。</span>
+        </div>
+      </div>
+
+      <div class="board-wrap">
+        <div class="board" id="board"></div>
+      </div>
+
+      <div class="side">
+        <div>
+          <h2>已經笑住</h2>
+          <div class="score">
+            <div class="big" id="count">0</div>
+            <div class="of">/ 40</div>
+          </div>
+          <div class="bar"><i id="bar"></i></div>
+        </div>
+
+        <div class="flash" id="flash">
+          <div class="label">剛剛抽到</div>
+          <div class="row">
+            <div class="n" id="flash-n"></div>
+            <div style="flex:1">
+              <div class="name" id="flash-name">等緊第一次抽格</div>
+              <div class="desc" id="flash-desc"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="log">
+          <h2>紀錄</h2>
+          <div class="log-rows" id="log"></div>
+        </div>
+
+        <div class="status">
+          <div class="dot" id="dot"></div>
+          <span id="mode">連線中… · 第 1 局</span>
+          <a class="swap" href="play">切去手機版</a>
+          <button class="reset" id="reset">重置全局</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="win" id="win" hidden>
+      <div>
+        <div class="headline">全村都笑咗！</div>
+        <div class="sub">40 格同一刻變成笑弟弟</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="settings.js"></script>
+<script src="game.js"></script>
+<script src="sync.js"></script>
+<script src="screen.js"></script>
+<script src="register-sw.js"></script>
+</body>
+</html>

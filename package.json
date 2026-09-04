@@ -1,0 +1,19 @@
+{
+  "name": "flip-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "愁哥哥同笑弟弟 — 東東村日營翻格遊戲",
+  "scripts": {
+    "serve": "node tools/dev-server.js",
+    "assets": "python3 tools/bake-assets.py",
+    "qr": "python3 tools/make-qr.py",
+    "verify": "node tools/verify-engine.js && node tools/verify-app.js && node tools/verify-parity.js",
+    "verify:engine": "node tools/verify-engine.js",
+    "verify:app": "node tools/verify-app.js",
+    "verify:parity": "node tools/verify-parity.js",
+    "deploy": "firebase deploy"
+  },
+  "devDependencies": {
+    "playwright": "^1.49.1"
+  }
+}
