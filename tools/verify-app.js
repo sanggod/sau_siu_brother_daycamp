@@ -144,13 +144,32 @@ function check(label, ok, detail) {
   /* ── endgame: past 30 the board switches to "what is left" ──
      Magic off so every draw opens exactly one box and the counts are exact. */
   await phone.evaluate(() => window.FlipSync.configure({ magic: false }));
-  await phone.evaluate(() => { for (let i = 0; i < 32; i++) window.FlipSync.draw(); });
+  // Draws can now miss, so press until the board is where we want it rather
+  // than assuming one press is one square.
+  const fillTo = (target) => phone.evaluate((t) => {
+    const S = window.FlipSync;
+    // onState fires synchronously, so the value is set by the time it returns.
+    const count = () => {
+      let c = 0, off = null;
+      off = S.onState(s => { c = Object.keys(S.live(s, Date.now())).length; });
+      if (off) off();
+      return c;
+    };
+    let guard = 0;
+    while (count() < t && guard++ < 1000) S.draw();
+    return { reached: count(), presses: guard };
+  }, target);
+
+  const fill32 = await fillTo(32);
   await screen.waitForFunction(
     () => document.querySelectorAll('.cell.on').length >= 30, null, { timeout: 8000 }
   ).catch(() => {});
 
   const many = await screen.locator('.cell.on').count();
-  check('screen: 32 draws opened 32 boxes', many === 32, `${many} on`);
+  check('screen: board filled to exactly 32', many === 32 && fill32.reached === 32,
+    `${many} on after ${fill32.presses} presses`);
+  check('screen: some of those presses missed', fill32.presses > 32,
+    `${fill32.presses} presses for 32 squares`);
   check('screen: endgame focus mode past 30',
     await screen.locator('.board.endgame').count() === 1);
   check('screen: 仲差 N 格 shown', await screen.locator('#togo').isVisible(),
@@ -171,7 +190,7 @@ function check(label, ok, detail) {
     }));
 
   /* ── the win locks the phone out ── */
-  await phone.evaluate(() => { for (let i = 0; i < 8; i++) window.FlipSync.draw(); });
+  await fillTo(40);
   await screen.waitForFunction(
     () => document.querySelectorAll('.cell.on').length === 40, null, { timeout: 8000 }
   ).catch(() => {});

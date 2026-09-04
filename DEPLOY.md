@@ -85,9 +85,24 @@ window.FLIP_SETTINGS = {
 - 40 格，5 欄 × 8 行。正面愁哥哥（灰），反面笑弟弟（暖黃 + 光暈）。
 - 組員完成任務 → 操作員撳手機「抽一次」→ 大螢幕即刻翻。
 - 每格笑 2:00–3:00（隨機）之後自動翻返愁哥哥。
-- **抽格只會抽仲係愁哥哥嗰啲**。以前係 1–40 隨機抽，夾到 30 幾格之後，
-  差唔多每次都抽返已經翻開嘅格，得個計時重新計，操作員連撳幾次都好似冇反應。
-  而家只要仲有愁哥哥，每次抽都一定開到新格。
+- **個轉盤唔再係死板嘅 1–40**。以前係 1–40 隨機抽，夾到 30 幾格之後，差唔多
+  每次都抽返已經翻開嘅格，得個計時重新計，操作員連撳幾次都好似冇反應。
+  而家個轉盤 = 仲係愁哥哥嗰啲，再加**一兩個已經笑緊嘅號碼做陪跑**
+  （淨係得愁哥哥嘅轉盤一眼睇得穿係做馬）。陪跑嘅大約係剩低數目嘅 6%，
+  但最少一個：
+
+  | 仲有幾多格愁哥哥 | 轉盤幾多個號碼 | 抽唔中嘅機會 |
+  |---|---|---|
+  | 40（啱啱開局） | 40 | 0% |
+  | 35 | 37 | 5.4% |
+  | 30 | 32 | 6.3% |
+  | 10 | 11 | 9.1% |
+  | 3 | 4 | 25% |
+  | 1 | 2 | 50% |
+
+- **抽中陪跑號碼 = 食白果**：嗰格本身已經喺度笑緊，所以乜都唔會變 —— 唔會翻新格，
+  亦都唔會幫佢續時間。大螢幕出粉紅色「食白果 · 呢格已經喺度笑緊，今次冇格翻。」
+  剩返最後一兩格嗰陣抽唔中嘅機會會明顯升，撳多兩次係正常嘅。
 - 翻夠 30 格，大螢幕自動轉「**收官模式**」：已經翻開嘅格收起倒數同淡化號碼，
   淨低嘅愁哥哥用紫色框圈住，右邊出「仲差 N 格就贏」。
 - 40 格同一刻全部係笑弟弟 → 大螢幕出「全村都笑咗！」，手機嘅抽格掣即刻鎖住，
@@ -143,11 +158,20 @@ Hong Kong hall; it is now plain Cantonese throughout.
 
 Three behaviour changes came out of the same test:
 
-- **The draw picks from closed boxes only** (`applyDraw` in `sync.js`). It used
-  to pick uniformly from 1–40, so once ~30 boxes were open most presses landed
-  on an already-open box and merely restarted its timer. The operator saw the
-  button do nothing several presses running. `verify-engine.js` now asserts
-  that no draw lands on an open box while any closed one remains.
+- **The wheel is the closed boxes plus a few decoys** (`applyDraw` in `sync.js`).
+  It used to pick uniformly from 1–40, so once ~30 boxes were open most presses
+  landed on an already-open box and merely restarted its timer — the operator
+  saw the button do nothing several presses running. A closed-only wheel fixes
+  that but reads as rigged, so `DECOY_RATE` (6%, minimum 1) puts a couple of
+  already-laughing numbers back in. Landing on one is a **miss**: no box opens
+  and no timer moves. `verify-engine.js` asserts that every non-miss draw opened
+  a closed square, that a miss leaves the board byte-identical, and that misses
+  stay under 20% of draws.
+
+  The minimum-of-1 is deliberate and has a sharp tail: at one square left the
+  wheel is 2 numbers, so half the presses miss. That was the choice — the last
+  square should be a gamble — but it is the thing to revisit first if the hall
+  ever stalls at 39/40.
 - **Endgame focus mode** past 30 open (`ENDGAME_AT` in `screen.js`, `.board.endgame`
   in `app.css`). A nearly-full board was 40 number badges and 40 countdowns on a
   wall of yellow, and the few 愁哥哥 left — the only thing anyone still had to act

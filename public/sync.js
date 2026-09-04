@@ -22,6 +22,17 @@
     { id: 'regret', w: 3,  name: '愁哥哥反悔', desc: '唔翻住，仲要收返一格。',     tone: 'bad' }
   ];
 
+  /* Not a 魔法 — you cannot roll it. It is what a draw is called when the wheel
+     lands on one of the decoy numbers (see DECOY_RATE below). */
+  var MISS = { id: 'miss', name: '食白果', desc: '呢格已經喺度笑緊，今次冇格翻。', tone: 'bad' };
+
+  /* The wheel is mostly the boxes still showing 愁哥哥, but a few numbers that
+     are already laughing go in as decoys — a wheel that can only ever land on a
+     grey square reads as rigged. Landing on a decoy is a miss: nothing flips,
+     nothing re-times. ~6% of what is left, and never zero while anything is
+     open, so the last square is still a gamble. */
+  var DECOY_RATE = 0.06;
+
   function key(n) { return 'b' + n; }
   function num(k) { return +String(k).slice(1); }
 
@@ -83,15 +94,24 @@
   function applyDraw(cur) {
     var now = Date.now(), st = norm(cur), i;
     prune(st, now);
-    /* Draw from the boxes still showing 愁哥哥. A uniform 1-40 pick meant that
-       past ~30 flipped, most draws landed on a box that was already open and
-       only restarted its timer — operators saw the button do nothing several
-       presses in a row. Every draw now opens a box while any is left. */
-    var closed = [];
-    for (i = 1; i <= N; i++) if (!st.boxes[key(i)]) closed.push(i);
-    var n = closed.length ? closed[Math.floor(Math.random() * closed.length)]
-                          : 1 + Math.floor(Math.random() * N);
-    var eff = pickEffect(), extra = [], pool;
+    /* A uniform 1-40 pick meant that past ~30 flipped, most draws landed on a
+       box that was already open and only restarted its timer — operators saw
+       the button do nothing several presses in a row. The wheel is now the
+       closed boxes plus a handful of open ones as decoys. */
+    var closed = [], open = [];
+    for (i = 1; i <= N; i++) (st.boxes[key(i)] ? open : closed).push(i);
+
+    var decoys = (closed.length && open.length)
+      ? Math.min(open.length, Math.max(1, Math.round(closed.length * DECOY_RATE)))
+      : 0;
+    var wheel = closed.concat(shuffle(open.slice()).slice(0, decoys));
+    var n = wheel.length ? wheel[Math.floor(Math.random() * wheel.length)]
+                         : 1 + Math.floor(Math.random() * N);
+
+    // Landed on a decoy: the square is already laughing, so nothing changes.
+    var missed = !!st.boxes[key(n)];
+    var eff = missed ? MISS : pickEffect();
+    var extra = [], pool;
 
     function flip(m, d) { st.boxes[key(m)] = { at: now, dur: d || baseDur() }; }
     function takeOne(skip) {
@@ -102,7 +122,8 @@
       return m;
     }
 
-    if (eff.id === 'none') flip(n);
+    if (eff.id === 'miss') { /* nothing flips, nothing re-times */ }
+    else if (eff.id === 'none') flip(n);
     else if (eff.id === 'spread') {
       flip(n);
       neighbours(n).forEach(function (m) { flip(m); extra.push(m); });
@@ -143,7 +164,8 @@
     st.seq = (st.seq || 0) + 1;
     var rec = {
       id: st.seq, n: n, at: now, eff: eff.id, name: eff.name, desc: eff.desc,
-      tone: eff.tone, kept: eff.id !== 'regret', extra: extra.join(',')
+      tone: eff.tone, kept: eff.id !== 'regret' && eff.id !== 'miss',
+      extra: extra.join(',')
     };
     st.last = rec;
     st.draws = [rec].concat(st.draws || []).slice(0, 10);
@@ -232,7 +254,8 @@
   })();
 
   window.FlipSync = {
-    N: N, COLS: COLS, ROWS: ROWS, EFFECTS: EFFECTS, ready: ready,
+    N: N, COLS: COLS, ROWS: ROWS, EFFECTS: EFFECTS, MISS: MISS,
+    DECOY_RATE: DECOY_RATE, ready: ready,
     configure: function (o) {
       if (!o) return;
       if (o.min) CFG.min = o.min;

@@ -42,21 +42,31 @@ function check(label, ok, detail) {
     let maxBoxes = 0, wonSeen = false, wonWithoutFull = false;
     let nullBox = false, outOfRange = false, longLog = false;
     let drawsWithN = 0;
-    // The whole point of the closed-pool pick: while any box is still 愁哥哥,
-    // a draw must land on one of those, never on a box that is already open.
-    let wastedDraws = 0, drawsWithRoom = 0;
+    // The wheel is the closed boxes plus a few open ones as decoys. Landing on
+    // a decoy is a miss and must change nothing at all; landing anywhere else
+    // must open a square. Anything that opens a square while reporting a miss,
+    // or reports a hit on a square that was already open, is a bug.
+    let drawsWithRoom = 0, misses = 0, lyingHits = 0, missChangedBoard = 0;
 
     for (let i = 0; i < DRAWS; i++) {
       // Look 50ms ahead so a box expiring between this snapshot and the
       // draw's own prune is not mistaken for a wasted pick.
       const before = st ? Object.keys(S.live(st, Date.now() + 50)).map(Number) : [];
+      const beforeBoxes = st ? JSON.parse(JSON.stringify(st.boxes || {})) : {};
       S.draw();
       if (!st) return { fatal: 'no state after draw' };
 
       const last = st.last;
       if (before.length < 40 && last) {
         drawsWithRoom++;
-        if (before.indexOf(last.n) !== -1) wastedDraws++;
+        const landedOnOpen = before.indexOf(last.n) !== -1;
+        if (last.eff === 'miss') {
+          misses++;
+          // A miss must leave every box exactly as it was, timers included.
+          if (JSON.stringify(beforeBoxes) !== JSON.stringify(st.boxes || {})) missChangedBoard++;
+        } else if (landedOnOpen) {
+          lyingHits++;
+        }
       }
       if (last) {
         seen[last.eff] = (seen[last.eff] || 0) + 1;
@@ -80,12 +90,19 @@ function check(label, ok, detail) {
         if (liveCount < 40) wonWithoutFull = true;
       }
 
+      // Keep the board cycling. 4000 back-to-back draws fill it to 40 within
+      // the first 40 and hold it there, and a full board makes every draw a
+      // miss — which starves the effect roll and is not a state the camp can
+      // even reach, since the phone locks at 40.
+      if (Object.keys(S.live(st, Date.now())).length >= 40) S.reset();
+
       // Let some boxes lapse now and then so expiry is exercised too.
       if (i % 250 === 249) await new Promise(r => setTimeout(r, 60));
     }
 
     return {
-      seen, maxBoxes, wonSeen, wonWithoutFull, longLog, wastedDraws, drawsWithRoom,
+      seen, maxBoxes, wonSeen, wonWithoutFull, longLog,
+      drawsWithRoom, misses, lyingHits, missChangedBoard,
       badKeys: [...badKeys], nullBox, outOfRange, drawsWithN,
       effects: S.EFFECTS.map(e => e.id)
     };
@@ -105,11 +122,16 @@ function check(label, ok, detail) {
   check('log stayed capped at 10', !r.longLog);
   check('win only ever set with all 40 live', !r.wonWithoutFull);
   check('win condition was reached at least once', r.wonSeen);
-  check('a draw never lands on an already-open box while any is closed',
-    r.wastedDraws === 0,
-    `${r.wastedDraws} wasted of ${r.drawsWithRoom} draws with room`);
+  check('every non-miss draw opened a square that was closed',
+    r.lyingHits === 0, `${r.lyingHits} draws claimed a hit on an open square`);
+  check('a miss changed nothing on the board',
+    r.missChangedBoard === 0, `${r.missChangedBoard} of ${r.misses} misses moved a box`);
+  const missRate = r.drawsWithRoom ? r.misses / r.drawsWithRoom : 0;
+  check('misses stay occasional, not the norm',
+    r.misses > 0 && missRate < 0.2,
+    `${r.misses}/${r.drawsWithRoom} = ${(missRate * 100).toFixed(1)}%`);
 
-  const missing = r.effects.filter(id => !r.seen[id]);
+  const missing = r.effects.filter(id => !r.seen[id]);   // 'miss' is not rollable
   check('all 8 magic effects fired', missing.length === 0,
     missing.length ? 'never saw ' + missing.join(', ')
                    : r.effects.map(id => `${id}:${r.seen[id]}`).join('  '));

@@ -7,7 +7,7 @@
 
    The game state itself always goes over the live Realtime Database socket;
    nothing here caches or replays it. */
-var VERSION = 'flipgame-v2';
+var VERSION = 'flipgame-v3';
 
 /* Clean URLs (firebase.json cleanUrls) — asking for the .html form would be
    a 301, and Cache.add refuses a redirected response. */
