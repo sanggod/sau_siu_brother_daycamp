@@ -109,7 +109,7 @@
         var strong = document.createElement('b');
         strong.textContent = String(N - count);
         el.togo.replaceChildren(document.createTextNode('仲差 '), strong,
-                                document.createTextNode(' 格就贏'));
+                                document.createTextNode(' 格'));
       }
     }
 

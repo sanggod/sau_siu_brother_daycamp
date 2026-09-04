@@ -15,7 +15,7 @@
 
    The game state itself always goes over the live Realtime Database socket;
    nothing here caches or replays it. */
-var VERSION = 'flipgame-v6';
+var VERSION = 'flipgame-v7';
 var NET_TIMEOUT = 2500;
 
 /* Clean URLs (firebase.json cleanUrls) — asking for the .html form would be
